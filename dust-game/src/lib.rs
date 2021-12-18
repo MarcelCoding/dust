@@ -1,3 +1,4 @@
-mod entity;
-mod boundary;
-mod world;
+pub mod entity;
+pub mod boundary;
+pub mod world;
+pub mod position;
