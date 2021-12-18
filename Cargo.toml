@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
-    "server",
-    "client"
+    "dust-server",
+    "dust-client",
+    "dust-protocol"
 ]
