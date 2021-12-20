@@ -1,6 +1,6 @@
 use std::io;
 
-use log::LevelFilter;
+use log::{info, LevelFilter};
 use message_io::network::Transport;
 use simplelog::{ColorChoice, Config, TerminalMode, TermLogger};
 

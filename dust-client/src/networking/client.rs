@@ -32,6 +32,9 @@ impl Client {
             let mut pkg_data = bincode::serialize(&login_pkg).expect("Unable to serialize package");
 
             let mut data = vec![1u8];
+            let i = pkg_data.len();
+            let mut result = bincode::serialize(&i).unwrap();
+            data.append(&mut result);
             data.append(&mut pkg_data);
 
             self.handler.network().send(endpoint, &data);

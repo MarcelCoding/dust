@@ -5,7 +5,7 @@ pub struct ErrorPackage {
 }
 
 pub enum ErrorCode {
-    UnknownPackageType,
+    UnknownPackageType(u8),
     MalformedPackage,
 }
 

@@ -1,59 +1,59 @@
 use std::collections::HashMap;
-use std::io::Result;
+use std::io;
 use std::net::SocketAddr;
-use log::{error, info};
+use std::sync::Arc;
+use std::time::Duration;
 
-use message_io::network::{Endpoint, NetEvent, Transport};
-use message_io::node::{self, NodeHandler, NodeListener};
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::Mutex;
+use tokio::time;
 
-use crate::networking::Client;
-use crate::package::handle_package;
+use crate::Client;
+use crate::networking::Handler;
 
 pub struct Server {
-    clients: HashMap<Endpoint, Client>,
-    handler: NodeHandler<()>,
+    listener: TcpListener,
+    handler: Arc<Mutex<Handler>>,
 }
 
 impl Server {
-    pub fn listen(transport: Transport, address: SocketAddr) -> Result<(Self, NodeListener<()>)> {
-        let (handler, listener) = node::split();
+    pub async fn listen(address: &SocketAddr) -> io::Result<Server> {
+        let listener = TcpListener::bind(address).await?;
+        Ok(Server { listener, handler: Arc::new(Mutex::new(Handler::new())) })
+    }
 
-        match handler.network().listen(transport, address) {
-            Ok(_) => Ok((Server { clients: HashMap::new(), handler }, listener)),
-            Err(error) => Err(error)
+    // If one client fails the server is shutting down ... :D
+    pub async fn handle(&self) -> io::Result<()> {
+        loop {
+            let (stream, address) = self.accept().await?;
+
+            let local_handler = self.handler.clone();
+            tokio::spawn(async move { local_handler.lock().await.accept(stream, address).await });
         }
     }
 
-    fn handle_accept(&mut self, endpoint: Endpoint) {
-        self.clients.insert(endpoint, Client::new());
-        info!("Client from {} connected. Total {} clients.", endpoint.addr(), self.clients.len());
-    }
+    async fn accept(&self) -> io::Result<(TcpStream, SocketAddr)> {
+        let mut backoff = 1;
 
-    fn handle_disconnect(&mut self, endpoint: Endpoint) {
-        let client = self.clients.remove(&endpoint).unwrap();
-        let user = client.get_user();
+        // Try to accept a few times
+        loop {
+            // Perform the accept operation. If a socket is successfully
+            // accepted, return it. Otherwise, save the error.
+            match self.listener.accept().await {
+                Ok(result) => return Ok(result),
+                Err(err) => {
+                    if backoff > 64 {
+                        // Accept has failed too many times. Return the error.
+                        return Err(err.into());
+                    }
+                }
+            }
 
-        match user {
-            Some(u) => info!("Client from {} ({}) disconnected. Total {} clients.", endpoint.addr(), u.get_name(), self.clients.len()),
-            None => info!("Client from {} disconnected. Total {} clients.", endpoint.addr(), self.clients.len())
+            // Pause execution until the back off period elapses.
+            time::sleep(Duration::from_secs(backoff)).await;
+
+            // Double the back off
+            backoff *= 2;
         }
     }
-    fn handle_message(&mut self, endpoint: Endpoint, data: &[u8]) {
-
-        match self.clients.get_mut(&endpoint) {
-            Some(client) =>
-                handle_package(&endpoint, client, data[0], &data[1..])
-                    .expect("Unable to parse package"),
-            None => error!("Client did not connected.")
-        }
-    }
-}
-
-pub fn register_handler(server: &mut Server, listener: NodeListener<()>) {
-    listener.for_each(move |event| match event.network() {
-        NetEvent::Connected(_, _) => (),
-        NetEvent::Accepted(endpoint, _) => server.handle_accept(endpoint),
-        NetEvent::Message(endpoint, data) => server.handle_message(endpoint, data),
-        NetEvent::Disconnected(endpoint) => server.handle_disconnect(endpoint)
-    });
 }
