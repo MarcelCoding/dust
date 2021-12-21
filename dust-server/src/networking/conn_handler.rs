@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use log::info;
+use log::{error, info, warn};
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 
@@ -38,7 +38,7 @@ impl ConnectionHandler {
 
             match pkg {
                 Some(pkg) => self.on_package(client, &address, pkg).await,
-                None => {} // info!("Not enough data, waiting for more."),
+                None => warn!("Not enough data, waiting for more."),
             }
         };
 
@@ -63,27 +63,18 @@ impl ConnectionHandler {
         let mut clients = self.clients.lock().await;
         let client = clients.remove(address).unwrap();
 
-        match client.get_user() {
-            Some(u) => info!(
-                "Client from {} ({}) disconnected. Total {} clients. Reason: {}",
-                address,
-                u.get_name(),
-                clients.len(),
-                err
-            ),
-            None => info!(
-                "Client from {} disconnected. Total {} clients. Reason: {}",
-                address,
-                clients.len(),
-                err
-            ),
-        }
+        info!(
+            "Client from {} disconnected. Total {} clients. Reason: {}",
+            client.get_display(address),
+            clients.len(),
+            err
+        )
     }
 
     async fn on_package(&self, client: &mut Client, address: &SocketAddr, pkg: Package) {
         match self.pkg_handler.handle(client, address, pkg).await {
-            Ok(_) => {} // todo
-            Err(_) => {}
+            Err(err) => error!("Error while handling package from {}: {}", &address, err),
+            _ => {}
         };
     }
 }

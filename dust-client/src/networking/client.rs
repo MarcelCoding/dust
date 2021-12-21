@@ -1,7 +1,7 @@
 use std::io;
 use std::net::SocketAddr;
 
-use log::{error, info};
+use log::{error, info, warn};
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 
@@ -9,9 +9,6 @@ use dust_networking::conn::{Connection, TcpConnection};
 use dust_networking::package::Package;
 
 use crate::package::PackageHandler;
-
-// use message_io::network::{Endpoint, NetEvent, Transport};
-// use message_io::node::{self, NodeHandler, NodeListener};
 
 pub struct Client {
     address: SocketAddr,
@@ -32,13 +29,15 @@ impl Client {
     pub async fn handle(&mut self) {
         self.on_connect();
 
-        let mut conn = self.conn.lock().await;
-
         let err = 'connection: loop {
-            match (&mut conn.receive_pkg()).await {
-                Ok(Some(pkg)) => self.on_package(pkg).await,
-                Ok(None) => info!("Not enough data, waiting for more."),
+            let pkg = match (&mut self.conn.lock().await.receive_pkg()).await {
+                Ok(pkg) => pkg,
                 Err(err) => break 'connection err,
+            };
+
+            match pkg {
+                Some(pkg) => self.on_package(pkg).await,
+                None => warn!("Not enough data, waiting for more."),
             }
         };
 
@@ -76,5 +75,13 @@ impl Client {
         error!("Connection to {} lost: {}", self.address, err,);
     }
 
-    async fn on_package(&self, pkg: Package) {}
+    async fn on_package(&self, pkg: Package) {
+        match self.pkg_handler.handle(pkg).await {
+            Err(err) => error!(
+                "Error while handling package from {}: {}",
+                self.address, err
+            ),
+            _ => {}
+        };
+    }
 }

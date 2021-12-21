@@ -1,11 +1,11 @@
 use std::io;
 use std::net::SocketAddr;
 
-use log::info;
+use log::warn;
 
-use dust_game::user::User;
 use dust_networking::package::Package;
 
+use crate::package::login::login;
 use crate::Client;
 
 mod login;
@@ -24,36 +24,20 @@ impl PackageHandler {
         package: Package,
     ) -> io::Result<()> {
         match package {
-            Package::Error(_) => {}
-            Package::Ping(_) => {}
-            Package::Pong(_) => {}
-            Package::Login(pkg) => {
-                client.set_user(User::new(pkg.get_name().clone()));
-
-                info!(
-                    "Client from {} logged in using name {}.",
-                    address,
-                    pkg.get_name()
-                );
-            }
+            Package::Error(_) => unimplemented(client, address, "error"),
+            Package::Ping(_) => unimplemented(client, address, "ping"),
+            Package::Pong(_) => unimplemented(client, address, "pong"),
+            Package::Login(pkg) => login(client, address, pkg),
         }
+
         Ok(())
     }
 }
-// pub fn handle_package(address: SocketAddr, client: &mut Client, pkg_id: &u8, pkg_data: &[u8]) -> bincode::Result<()> {
-//     match pkg_id {
-//         1 => {
-//             match client.get_user() {
-//                 Some(user) => error!("Client {} is already registered as {}.", address, user.get_name()),
-//                 None => {
-//                     let login_pkg: LoginPackage = deserialize(pkg_data)?;
-//                     client.set_user(User::new(login_pkg.get_name().clone()));
-//
-//                     info!("Client from {} logged in using name {}.", address, login_pkg.get_name());
-//                 }
-//             }
-//         }
-//         _ => error!("Client {} send unknown package with id {}.", address, pkg_id) // TODO: send feedback to client
-//     }
-//     Ok(())
-// }
+
+fn unimplemented(client: &Client, address: &SocketAddr, pkg: &str) {
+    warn!(
+        "Client {} requested unimplemented package type \"{}\".",
+        client.get_display(address),
+        pkg
+    );
+}

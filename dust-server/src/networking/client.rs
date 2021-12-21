@@ -1,3 +1,6 @@
+use std::fmt::format;
+use std::net::SocketAddr;
+
 use dust_game::user::User;
 use dust_networking::conn::Connection;
 
@@ -11,7 +14,7 @@ impl Client {
         Client { conn, user: None }
     }
 
-    pub fn get_conn(&mut self) -> &mut Box::<dyn Connection> {
+    pub fn get_conn(&mut self) -> &mut Box<dyn Connection> {
         &mut self.conn
     }
 
@@ -21,5 +24,12 @@ impl Client {
 
     pub fn set_user(&mut self, user: User) {
         self.user = Some(user);
+    }
+
+    pub fn get_display(&self, address: &SocketAddr) -> String {
+        match &self.user {
+            None => address.to_string(),
+            Some(user) => format!("{} ({})", address.to_string(), user.get_name()),
+        }
     }
 }
