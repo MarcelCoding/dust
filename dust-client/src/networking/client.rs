@@ -48,25 +48,6 @@ impl Client {
         self.conn.lock().await.send_pkg(pkg).await
     }
 
-    // pub async fn send(&mut self, package: &T) {
-    //     let mut pkg_data = bincode::serialize(package).expect("Unable to serialize Package");
-    //     let pkg_data_length = pkg_data.len();
-    //     let mut serialized_length = bincode::serialize(&pkg_data_length).unwrap();
-    //
-    //     let mut to_send = vec![1u8];
-    //     to_send.append(&mut serialized_length);
-    //     to_send.append(&mut pkg_data);
-    //
-    //     self.socket.write_all(&to_send).await?;
-    // }
-
-    // async fn handle_connect(&mut self) {
-    //     let name = "Marcel Davis";
-    //     let login_pkg = LoginPackage::new(name.into());
-    //
-    //     self.send(&login_pkg);
-    // }
-
     fn on_connect(&self) {
         info!("Successfully established connection to {}.", self.address,);
     }

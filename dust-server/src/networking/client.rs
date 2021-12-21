@@ -1,4 +1,3 @@
-use std::fmt::format;
 use std::net::SocketAddr;
 
 use dust_game::user::User;
