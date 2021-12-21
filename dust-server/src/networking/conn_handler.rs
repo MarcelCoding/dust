@@ -37,8 +37,8 @@ impl ConnectionHandler {
             };
 
             match pkg {
-                Some(pkg) => self.on_package(client, pkg).await,
-                None => {}, // info!("Not enough data, waiting for more."),
+                Some(pkg) => self.on_package(client, &address, pkg).await,
+                None => {} // info!("Not enough data, waiting for more."),
             }
         };
 
@@ -80,11 +80,10 @@ impl ConnectionHandler {
         }
     }
 
-    async fn on_package(&self, client: &mut Client, pkg: Package) {
-        match self.pkg_handler.handle(client, pkg).await {
+    async fn on_package(&self, client: &mut Client, address: &SocketAddr, pkg: Package) {
+        match self.pkg_handler.handle(client, address, pkg).await {
             Ok(_) => {} // todo
             Err(_) => {}
         };
-
     }
 }

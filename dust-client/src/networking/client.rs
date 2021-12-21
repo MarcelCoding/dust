@@ -1,21 +1,17 @@
 use std::io;
-use std::io::Result;
 use std::net::SocketAddr;
-use std::sync::Arc;
 
-use log::{error, info, warn};
-use tokio::io::AsyncWriteExt;
-use tokio::net::{TcpSocket, TcpStream};
+use log::{error, info};
+use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 
 use dust_networking::conn::{Connection, TcpConnection};
-use dust_networking::package::{Package, PkgData};
+use dust_networking::package::Package;
 
 use crate::package::PackageHandler;
 
 // use message_io::network::{Endpoint, NetEvent, Transport};
 // use message_io::node::{self, NodeHandler, NodeListener};
-
 
 pub struct Client {
     address: SocketAddr,
@@ -26,7 +22,11 @@ pub struct Client {
 impl Client {
     pub async fn connect(address: SocketAddr, pkg_handler: PackageHandler) -> io::Result<Self> {
         let conn = Box::new(TcpConnection::new(TcpStream::connect(address).await?));
-        Ok(Client { address, conn: Mutex::new(conn), pkg_handler })
+        Ok(Client {
+            address,
+            conn: Mutex::new(conn),
+            pkg_handler,
+        })
     }
 
     pub async fn handle(&mut self) {
@@ -61,7 +61,6 @@ impl Client {
     //     self.socket.write_all(&to_send).await?;
     // }
 
-
     // async fn handle_connect(&mut self) {
     //     let name = "Marcel Davis";
     //     let login_pkg = LoginPackage::new(name.into());
@@ -69,21 +68,12 @@ impl Client {
     //     self.send(&login_pkg);
     // }
 
-
     fn on_connect(&self) {
-        info!(
-            "Successfully established connection to {}.",
-            self.address,
-        );
+        info!("Successfully established connection to {}.", self.address,);
     }
 
-
     fn on_disconnect(&self, err: anyhow::Error) {
-        error!(
-            "Connection to {} lost: {}",
-            self.address,
-            err,
-        );
+        error!("Connection to {} lost: {}", self.address, err,);
     }
 
     async fn on_package(&self, pkg: Package) {}

@@ -1,5 +1,9 @@
 use std::io;
+use std::net::SocketAddr;
 
+use log::info;
+
+use dust_game::user::User;
 use dust_networking::package::Package;
 
 use crate::Client;
@@ -13,13 +17,24 @@ impl PackageHandler {
         PackageHandler {}
     }
 
-    pub async fn handle(&self, client: &mut Client, package: Package) -> io::Result<()> {
+    pub async fn handle(
+        &self,
+        client: &mut Client,
+        address: &SocketAddr,
+        package: Package,
+    ) -> io::Result<()> {
         match package {
             Package::Error(_) => {}
             Package::Ping(_) => {}
             Package::Pong(_) => {}
-            Package::Login(package) => {
-                println!("login {}", package.get_name())
+            Package::Login(pkg) => {
+                client.set_user(User::new(pkg.get_name().clone()));
+
+                info!(
+                    "Client from {} logged in using name {}.",
+                    address,
+                    pkg.get_name()
+                );
             }
         }
         Ok(())
