@@ -30,13 +30,16 @@ impl ConnectionHandler {
         let err = 'connection: loop {
             let mut clients = self.clients.lock().await;
             let client = clients.get_mut(&address).unwrap();
-            let conn = client.get_conn();
 
-            match (&mut conn.receive_pkg()).await {
-                Ok(Some(pkg)) => self.on_package(pkg).await,
-                Ok(None) => info!("Not enough data, waiting for more."),
+            let pkg = match (&mut client.get_conn().receive_pkg()).await {
+                Ok(pkg) => pkg,
                 Err(err) => break 'connection err,
             };
+
+            match pkg {
+                Some(pkg) => self.on_package(client, pkg).await,
+                None => {}, // info!("Not enough data, waiting for more."),
+            }
         };
 
         self.on_disconnect(&address, err).await;
@@ -77,5 +80,11 @@ impl ConnectionHandler {
         }
     }
 
-    async fn on_package(&self, pkg: Package) {}
+    async fn on_package(&self, client: &mut Client, pkg: Package) {
+        match self.pkg_handler.handle(client, pkg).await {
+            Ok(_) => {} // todo
+            Err(_) => {}
+        };
+
+    }
 }

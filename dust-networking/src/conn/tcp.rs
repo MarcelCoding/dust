@@ -60,7 +60,7 @@ impl Connection for TcpConnection {
                 return Ok(Some(frame));
             }
 
-            if 0 == self.stream.read(&mut self.buffer).await? {
+            if self.stream.read_buf(&mut self.buffer).await? == 0 {
                 return if self.buffer.is_empty() {
                     Ok(None)
                 } else {

@@ -13,7 +13,15 @@ impl PackageHandler {
         PackageHandler {}
     }
 
-    pub async fn handle(client: Client, package: Package) -> io::Result<()> {
+    pub async fn handle(&self, client: &mut Client, package: Package) -> io::Result<()> {
+        match package {
+            Package::Error(_) => {}
+            Package::Ping(_) => {}
+            Package::Pong(_) => {}
+            Package::Login(package) => {
+                println!("login {}", package.get_name())
+            }
+        }
         Ok(())
     }
 }
