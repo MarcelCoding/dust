@@ -32,7 +32,10 @@ impl Server {
             let (stream, address) = self.accept().await?;
 
             let local_handler = self.conn_handler.clone();
-            tokio::spawn(async move { local_handler.lock().await.accept(stream, address).await });
+            tokio::spawn(async move {
+                // TODO: infinite lock
+                local_handler.lock().await.accept(stream, address).await
+            });
         }
     }
 
