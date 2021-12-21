@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use bytes::{Buf, BytesMut};
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
 use crate::conn::Connection;
@@ -72,7 +72,9 @@ impl Connection for TcpConnection {
         }
     }
 
-    async fn send_pkg(&self, pkg: Package) -> anyhow::Result<()> {
-        todo!()
+    async fn send_pkg(&mut self, pkg: Package) -> anyhow::Result<()> {
+        let result = pkg.encode()?;
+        self.stream.write_all(&result).await?;
+        Ok(())
     }
 }
