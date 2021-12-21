@@ -5,7 +5,7 @@ use log::{error, info, warn};
 use message_io::network::{Endpoint, NetEvent, Transport};
 use message_io::node::{self, NodeHandler, NodeListener};
 
-use dust_protocol::package::LoginPackage;
+use dust_networking::package::LoginPkgData;
 
 pub struct Client {
     handler: NodeHandler<()>,
@@ -28,7 +28,7 @@ impl Client {
             let name = "Klemens";
             info!("Logging in using name {}.", name);
 
-            let login_pkg = LoginPackage::new(name.into());
+            let login_pkg = LoginPkgData::new(name.into());
             let mut pkg_data = bincode::serialize(&login_pkg).expect("Unable to serialize package");
 
             let mut data = vec![1u8];

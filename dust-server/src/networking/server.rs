@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,18 +7,23 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::Mutex;
 use tokio::time;
 
-use crate::Client;
-use crate::networking::Handler;
+use crate::networking::ConnectionHandler;
 
 pub struct Server {
     listener: TcpListener,
-    handler: Arc<Mutex<Handler>>,
+    conn_handler: Arc<Mutex<ConnectionHandler>>,
 }
 
 impl Server {
-    pub async fn listen(address: &SocketAddr) -> io::Result<Server> {
+    pub async fn listen(
+        address: &SocketAddr,
+        conn_handler: ConnectionHandler,
+    ) -> io::Result<Server> {
         let listener = TcpListener::bind(address).await?;
-        Ok(Server { listener, handler: Arc::new(Mutex::new(Handler::new())) })
+        Ok(Server {
+            listener,
+            conn_handler: Arc::new(Mutex::new(conn_handler)),
+        })
     }
 
     // If one client fails the server is shutting down ... :D
@@ -27,7 +31,7 @@ impl Server {
         loop {
             let (stream, address) = self.accept().await?;
 
-            let local_handler = self.handler.clone();
+            let local_handler = self.conn_handler.clone();
             tokio::spawn(async move { local_handler.lock().await.accept(stream, address).await });
         }
     }

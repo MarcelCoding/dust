@@ -1,23 +1,18 @@
-use tokio::net::TcpStream;
-
 use dust_game::user::User;
+use dust_networking::conn::Connection;
 
 pub struct Client {
-    stream: TcpStream,
+    conn: Box<dyn Connection>,
     user: Option<User>,
 }
 
 impl Client {
-    pub fn new(stream: TcpStream) -> Self {
-        Client { stream, user: None }
+    pub fn new(conn: Box<dyn Connection>) -> Self {
+        Client { conn, user: None }
     }
 
-    pub fn get_stream(&self) -> &TcpStream {
-        &self.stream
-    }
-
-    pub fn get_stream_mut(&mut self) -> &mut TcpStream {
-        &mut self.stream
+    pub fn get_conn(&mut self) -> &mut Box::<dyn Connection> {
+        &mut self.conn
     }
 
     pub fn get_user(&self) -> &Option<User> {
@@ -26,9 +21,5 @@ impl Client {
 
     pub fn set_user(&mut self, user: User) {
         self.user = Some(user);
-    }
-
-    pub fn is_logged_in(&self) -> bool {
-        self.user.is_some()
     }
 }

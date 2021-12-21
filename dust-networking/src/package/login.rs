@@ -1,15 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use crate::package::Package;
+use crate::package::PkgData;
 
 #[derive(Serialize, Deserialize)]
-pub struct LoginPackage {
+pub struct LoginPkgData {
     name: String,
 }
 
-impl LoginPackage {
+impl LoginPkgData {
     pub fn new(name: String) -> Self {
-        LoginPackage { name }
+        LoginPkgData { name }
     }
 
     pub fn get_name(&self) -> &String {
@@ -17,4 +17,4 @@ impl LoginPackage {
     }
 }
 
-impl Package for LoginPackage {}
+impl PkgData for LoginPkgData {}

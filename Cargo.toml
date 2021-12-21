@@ -3,7 +3,7 @@
 members = [
     "dust-server",
     "dust-client",
-    "dust-protocol",
+    "dust-networking",
     "dust-game"
 ]
 
