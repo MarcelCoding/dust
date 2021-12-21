@@ -1,0 +1,28 @@
+FROM rust:alpine AS builder
+
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/dust/data" \
+    --shell "/sbin/nologin" \
+    --uid "1000" \
+    "dust"
+
+WORKDIR /src
+
+COPY . .
+
+RUN cargo build --package dust-server --release
+
+FROM scratch
+
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+
+WORKDIR /dust
+
+COPY --from=builder /src/target/release/dust-server ./server
+
+USER dust:dust
+
+CMD ["/dust/server"]
