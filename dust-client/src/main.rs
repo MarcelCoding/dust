@@ -1,14 +1,18 @@
 use std::io;
 
+use anyhow::anyhow;
 use log::{info, LevelFilter};
-use message_io::network::Transport;
+// use message_io::network::Transport;
 use simplelog::{ColorChoice, Config, TerminalMode, TermLogger};
 
-use crate::networking::{Client, register_handler};
+use crate::networking::Client;
+use crate::package::PackageHandler;
 
 mod networking;
+mod package;
 
-fn main() -> io::Result<()> {
+#[tokio::main]
+async fn main() -> io::Result<()> {
     TermLogger::init(
         LevelFilter::Info,
         Config::default(),
@@ -17,9 +21,9 @@ fn main() -> io::Result<()> {
     ).unwrap();
 
     let address = "127.0.0.1:1234".parse().unwrap();
-    let (mut client, listener) = Client::connect(Transport::FramedTcp, address)?;
+    let pkg_handler = PackageHandler::new();
+    let mut client = Client::connect(address, pkg_handler).await?;
 
-    register_handler(&mut client, listener);
-
+    client.handle().await;
     Ok(())
 }

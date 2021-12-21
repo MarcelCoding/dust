@@ -27,16 +27,16 @@ impl ConnectionHandler {
     pub async fn accept(&mut self, stream: TcpStream, address: SocketAddr) {
         self.on_connect(stream, &address).await;
 
-        let mut clients = self.clients.lock().await;
-        let client = clients.get_mut(&address).unwrap();
-        let conn = client.get_conn();
-
         let err = 'connection: loop {
+            let mut clients = self.clients.lock().await;
+            let client = clients.get_mut(&address).unwrap();
+            let conn = client.get_conn();
+
             match (&mut conn.receive_pkg()).await {
                 Ok(Some(pkg)) => self.on_package(pkg).await,
                 Ok(None) => info!("Not enough data, waiting for more."),
                 Err(err) => break 'connection err,
-            }
+            };
         };
 
         self.on_disconnect(&address, err).await;
