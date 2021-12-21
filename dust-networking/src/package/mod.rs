@@ -1,4 +1,5 @@
-use bytes::BytesMut;
+use std::fs::read_to_string;
+use bytes::{BufMut, BytesMut};
 use log::warn;
 use serde::{Deserialize, Serialize};
 
@@ -54,8 +55,11 @@ fn decode<'a, T: Deserialize<'a>>(frame: &'a [u8]) -> bincode::Result<T> {
 
 fn encode<T: ?Sized + Serialize>(id: u8, pkg: &T) -> bincode::Result<Vec<u8>> {
     let mut data = bincode::serialize(pkg)?;
-    let mut result = vec![id];
-    result.append(&mut data);
+
+    let mut result = BytesMut::with_capacity(5 + data.len());
+    result.put_u32((data.len() + 1) as u32);
+    result.put_u8(id);
+    result.copy_from_slice(&data); // convert to move
 
     Ok(data)
 }
