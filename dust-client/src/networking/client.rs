@@ -9,13 +9,11 @@ use dust_networking::conn::{Connection, TcpConnection};
 use dust_networking::package::Package;
 
 use crate::package::PackageHandler;
-use crate::ping_pong::PingPongHandler;
 
 pub struct Client {
     address: SocketAddr,
     conn: Box<dyn Connection>,
     pkg_handler: PackageHandler,
-    ping_pong_handler: PingPongHandler,
 }
 
 impl Client {
@@ -27,7 +25,6 @@ impl Client {
             address,
             conn,
             pkg_handler,
-            ping_pong_handler: PingPongHandler::new(),
         })
     }
 
@@ -54,8 +51,8 @@ impl Client {
         self.conn.send_pkg(pkg).await
     }
 
-    pub async fn send_ping(&mut self) -> anyhow::Result<u16> {
-        self.ping_pong_handler.send_ping(&self.conn).await
+    pub async fn send_ping(&self) -> anyhow::Result<u16> {
+        self.pkg_handler.send_ping(&self.conn).await
     }
 
     fn on_connect(&self) {
@@ -69,7 +66,7 @@ impl Client {
     async fn on_package(&self, pkg: Package) {
         if let Err(err) = self
             .pkg_handler
-            .handle(&self.conn, pkg, &self.ping_pong_handler)
+            .handle(&self.conn, pkg)
             .await
         {
             error!(

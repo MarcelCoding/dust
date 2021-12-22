@@ -1,12 +1,10 @@
 use async_trait::async_trait;
 use bytes::{BufMut, BytesMut};
 use futures::{SinkExt, StreamExt};
-
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
-
 use tokio::sync::Mutex;
-use tokio_util::codec::length_delimited::Builder;
 use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
+use tokio_util::codec::length_delimited::Builder;
 
 use crate::conn::Connection;
 use crate::package::Package;

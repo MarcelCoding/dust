@@ -1,11 +1,12 @@
-use dust_networking::conn::Connection;
-use dust_networking::package::{Ping, PingPkgData, PongPkgData};
-use log::info;
-use rand::random;
-
 use std::collections::HashMap;
 use std::time::SystemTime;
+
+use log::info;
+use rand::random;
 use tokio::sync::RwLock;
+
+use dust_networking::conn::Connection;
+use dust_networking::package::{Ping, PingPkgData, PongPkgData};
 
 pub struct PingPongHandler {
     ids: RwLock<HashMap<u16, SystemTime>>,
@@ -41,10 +42,10 @@ impl PingPongHandler {
 
         let pkg_id = pkg.get_id();
         let time = ids_guard.remove(&pkg_id).unwrap();
-        let elapsed_time = time.elapsed().unwrap().as_secs();
+        let elapsed_time = time.elapsed().unwrap().as_millis();
 
-        println!(
-            "Got back package {} after {} seconds.",
+        info!(
+            "Got back package {} after {} milliseconds.",
             pkg_id, elapsed_time
         )
     }

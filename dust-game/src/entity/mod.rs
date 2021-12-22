@@ -1,8 +1,10 @@
+pub use bot::BotEntity;
+
+pub use crate::position::Position;
+
 mod bot;
 mod player;
 mod projectile;
-pub use crate::position::Position;
-pub use bot::BotEntity;
 
 pub trait Entity {
     fn get_pos(&self) -> &Position<f32>;

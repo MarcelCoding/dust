@@ -2,7 +2,7 @@ use std::io;
 use std::sync::Arc;
 
 use log::{info, LevelFilter};
-use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TerminalMode, TermLogger};
 
 use crate::networking::{Client, ConnectionHandler, Server};
 use crate::package::PackageHandler;
@@ -20,7 +20,7 @@ async fn main() -> io::Result<()> {
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )
-    .unwrap();
+        .unwrap();
 
     let package_handler = Arc::new(PackageHandler::new());
     let conn_handler = ConnectionHandler::new(package_handler.clone());

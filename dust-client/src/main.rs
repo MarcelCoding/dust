@@ -1,5 +1,5 @@
 use log::LevelFilter;
-use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TerminalMode, TermLogger};
 
 use dust_networking::package::{Login, LoginPkgData};
 
@@ -20,14 +20,14 @@ async fn main() -> anyhow::Result<()> {
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )
-    .unwrap();
+        .unwrap();
 
-    let address = "127.0.0.1:1234".parse().unwrap();
+    let address = "192.168.2.219:1234".parse().unwrap();
     let pkg_handler = PackageHandler::new();
     let mut client = Client::connect(address, pkg_handler).await?;
 
     client
-        .send_pkg(Login(LoginPkgData::new("Marcel Davis".to_string())))
+        .send_pkg(Login(LoginPkgData::new("Tilman? More like Tilfrau".to_string())))
         .await?;
 
     client.send_ping().await?;

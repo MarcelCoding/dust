@@ -15,7 +15,7 @@ impl Client {
         Client { conn, user: None }
     }
 
-    async fn send_pkg(&self, pkg: Package) -> anyhow::Result<()> {
+    pub async fn send_pkg(&self, pkg: Package) -> anyhow::Result<()> {
         self.conn.send_pkg(pkg).await
     }
 

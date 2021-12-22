@@ -8,6 +8,7 @@ impl CoordinateValue for u16 {
         *self as f32
     }
 }
+
 impl CoordinateValue for f32 {
     fn as_f32(&self) -> f32 {
         *self
