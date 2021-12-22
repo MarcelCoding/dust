@@ -1,12 +1,14 @@
+use std::collections::HashMap;
 use std::io;
 use std::net::SocketAddr;
 
 use log::warn;
+use tokio::sync::RwLock;
 
 use dust_networking::package::Package;
 
-use crate::package::login::login;
 use crate::Client;
+use crate::package::login::login;
 
 mod login;
 
@@ -19,22 +21,29 @@ impl PackageHandler {
 
     pub async fn handle(
         &self,
-        client: &mut Client,
+        clients: &RwLock<HashMap<SocketAddr, Client>>,
         address: &SocketAddr,
         package: Package,
     ) -> io::Result<()> {
         match package {
-            Package::Error(_) => unimplemented(client, address, "error"),
-            Package::Ping(_) => unimplemented(client, address, "ping"),
-            Package::Pong(_) => unimplemented(client, address, "pong"),
-            Package::Login(pkg) => login(client, address, pkg),
+            Package::Error(_) => unimplemented(clients, address, "error").await,
+            Package::Ping(_) => unimplemented(clients, address, "ping").await,
+            Package::Pong(_) => unimplemented(clients, address, "pong").await,
+            Package::Login(pkg) => login(clients, address, pkg).await,
         }
 
         Ok(())
     }
 }
 
-fn unimplemented(client: &Client, address: &SocketAddr, pkg: &str) {
+async fn unimplemented(
+    clients: &RwLock<HashMap<SocketAddr, Client>>,
+    address: &SocketAddr,
+    pkg: &str,
+) {
+    let guard = clients.read().await;
+    let client = guard.get(address).unwrap();
+
     warn!(
         "Client {} requested unimplemented package type \"{}\".",
         client.get_display(address),

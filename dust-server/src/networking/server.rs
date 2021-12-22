@@ -4,14 +4,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::Mutex;
 use tokio::time;
 
 use crate::networking::ConnectionHandler;
 
 pub struct Server {
     listener: TcpListener,
-    conn_handler: Arc<Mutex<ConnectionHandler>>,
+    conn_handler: Arc<ConnectionHandler>,
 }
 
 impl Server {
@@ -22,7 +21,7 @@ impl Server {
         let listener = TcpListener::bind(address).await?;
         Ok(Server {
             listener,
-            conn_handler: Arc::new(Mutex::new(conn_handler)),
+            conn_handler: Arc::new(conn_handler),
         })
     }
 
@@ -32,10 +31,7 @@ impl Server {
             let (stream, address) = self.accept().await?;
 
             let local_handler = self.conn_handler.clone();
-            tokio::spawn(async move {
-                // TODO: infinite lock
-                local_handler.lock().await.accept(stream, address).await
-            });
+            tokio::spawn(async move { local_handler.accept(stream, address).await });
         }
     }
 

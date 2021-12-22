@@ -4,40 +4,42 @@ use std::sync::Arc;
 
 use log::{error, info, warn};
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 
-use dust_networking::conn::TcpConnection;
+use dust_networking::conn::{Connection, TcpConnection};
 use dust_networking::package::Package;
 
 use crate::{Client, PackageHandler};
 
 pub struct ConnectionHandler {
     pkg_handler: Arc<PackageHandler>,
-    clients: Mutex<HashMap<SocketAddr, Client>>,
+    clients: RwLock<HashMap<SocketAddr, Client>>,
 }
 
 impl ConnectionHandler {
     pub fn new(pkg_handler: Arc<PackageHandler>) -> Self {
         ConnectionHandler {
             pkg_handler,
-            clients: Mutex::new(HashMap::new()),
+            clients: RwLock::new(HashMap::new()),
         }
     }
 
-    pub async fn accept(&mut self, stream: TcpStream, address: SocketAddr) {
-        self.on_connect(stream, &address).await;
+    pub async fn accept(&self, stream: TcpStream, address: SocketAddr) {
+        let connection = Mutex::new(TcpConnection::new(stream));
+        let conn = Arc::new(connection);
+
+        self.on_connect(conn.clone(), &address).await;
 
         let err = 'connection: loop {
-            let mut clients = self.clients.lock().await;
-            let client = clients.get_mut(&address).unwrap();
+            let conn = conn.clone();
 
-            let pkg = match (&mut client.get_conn().receive_pkg()).await {
+            let pkg = match (conn.lock().await.receive_pkg()).await {
                 Ok(pkg) => pkg,
                 Err(err) => break 'connection err,
             };
 
             match pkg {
-                Some(pkg) => self.on_package(client, &address, pkg).await,
+                Some(pkg) => self.on_package(&address, pkg).await,
                 None => warn!("Not enough data, waiting for more."),
             }
         };
@@ -45,11 +47,10 @@ impl ConnectionHandler {
         self.on_disconnect(&address, err).await;
     }
 
-    async fn on_connect(&self, stream: TcpStream, address: &SocketAddr) {
-        let conn = Box::new(TcpConnection::new(stream));
+    async fn on_connect(&self, conn: Arc<Mutex<dyn Connection>>, address: &SocketAddr) {
         let client = Client::new(conn);
 
-        let mut clients = self.clients.lock().await;
+        let mut clients = self.clients.write().await;
         clients.insert(address.clone(), client);
 
         info!(
@@ -60,7 +61,7 @@ impl ConnectionHandler {
     }
 
     async fn on_disconnect(&self, address: &SocketAddr, err: anyhow::Error) {
-        let mut clients = self.clients.lock().await;
+        let mut clients = self.clients.write().await;
         let client = clients.remove(address).unwrap();
 
         info!(
@@ -71,8 +72,8 @@ impl ConnectionHandler {
         )
     }
 
-    async fn on_package(&self, client: &mut Client, address: &SocketAddr, pkg: Package) {
-        match self.pkg_handler.handle(client, address, pkg).await {
+    async fn on_package(&self, address: &SocketAddr, pkg: Package) {
+        match self.pkg_handler.handle(&self.clients, address, pkg).await {
             Err(err) => error!("Error while handling package from {}: {}", &address, err),
             _ => {}
         };

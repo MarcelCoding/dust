@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 pub use crate::package::error::ErrorPkgData;
 pub use crate::package::login::LoginPkgData;
+pub use crate::package::Package::{Error, Login, Ping, Pong};
 pub use crate::package::ping::PingPkgData;
 pub use crate::package::pong::PongPkgData;
-pub use crate::package::Package::{Error, Login, Ping, Pong};
 
 mod error;
 mod login;
