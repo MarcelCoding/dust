@@ -9,8 +9,10 @@ use dust_networking::package::Package;
 
 use crate::Client;
 use crate::package::login::login;
+use crate::package::ping::ping;
 
 mod login;
+mod ping;
 
 pub struct PackageHandler {}
 
@@ -24,10 +26,10 @@ impl PackageHandler {
         clients: &RwLock<HashMap<SocketAddr, RwLock<Client>>>,
         address: &SocketAddr,
         package: Package,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         match package {
             Package::Error(_) => unimplemented(clients, address, "error").await,
-            Package::Ping(_) => unimplemented(clients, address, "ping").await,
+            Package::Ping(pkg) => ping(clients, address, pkg).await?,
             Package::Pong(_) => unimplemented(clients, address, "pong").await,
             Package::Login(pkg) => login(clients, address, pkg).await,
         }

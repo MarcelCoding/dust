@@ -12,3 +12,4 @@ dust-game = { path = "../dust-game" }
 log = "0.4"
 simplelog = "0.11"
 anyhow = "1.0"
+rand="0.8"
