@@ -13,7 +13,7 @@ use crate::{Client, PackageHandler};
 
 pub struct ConnectionHandler {
     pkg_handler: Arc<PackageHandler>,
-    clients: RwLock<HashMap<SocketAddr, Client>>,
+    clients: RwLock<HashMap<SocketAddr, RwLock<Client>>>,
 }
 
 impl ConnectionHandler {
@@ -51,7 +51,7 @@ impl ConnectionHandler {
         let client = Client::new(conn);
 
         let mut clients = self.clients.write().await;
-        clients.insert(address.clone(), client);
+        clients.insert(address.clone(), RwLock::new(client));
 
         info!(
             "Client from {} established connection. Total {} clients.",
@@ -62,7 +62,8 @@ impl ConnectionHandler {
 
     async fn on_disconnect(&self, address: &SocketAddr, err: anyhow::Error) {
         let mut clients = self.clients.write().await;
-        let client = clients.remove(address).unwrap();
+        let lock = clients.remove(address).unwrap();
+        let client = lock.read().await;
 
         info!(
             "Client from {} disconnected. Total {} clients. Reason: {}",

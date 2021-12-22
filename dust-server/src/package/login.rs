@@ -10,12 +10,12 @@ use dust_networking::package::LoginPkgData;
 use crate::Client;
 
 pub(super) async fn login(
-    clients: &RwLock<HashMap<SocketAddr, Client>>,
+    clients: &RwLock<HashMap<SocketAddr, RwLock<Client>>>,
     address: &SocketAddr,
     pkg: LoginPkgData,
 ) {
     let mut guard = clients.write().await;
-    let client = guard.get_mut(address).unwrap();
+    let mut client = guard.get_mut(address).unwrap().write().await;
 
     client.set_user(User::new(pkg.get_name().clone()));
 

@@ -21,7 +21,7 @@ impl PackageHandler {
 
     pub async fn handle(
         &self,
-        clients: &RwLock<HashMap<SocketAddr, Client>>,
+        clients: &RwLock<HashMap<SocketAddr, RwLock<Client>>>,
         address: &SocketAddr,
         package: Package,
     ) -> io::Result<()> {
@@ -37,12 +37,12 @@ impl PackageHandler {
 }
 
 async fn unimplemented(
-    clients: &RwLock<HashMap<SocketAddr, Client>>,
+    clients: &RwLock<HashMap<SocketAddr, RwLock<Client>>>,
     address: &SocketAddr,
     pkg: &str,
 ) {
     let guard = clients.read().await;
-    let client = guard.get(address).unwrap();
+    let client = guard.get(address).unwrap().read().await;
 
     warn!(
         "Client {} requested unimplemented package type \"{}\".",
