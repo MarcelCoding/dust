@@ -1,19 +1,15 @@
-use std::io::Error;
-use std::sync::Arc;
-
-use anyhow::anyhow;
 use async_trait::async_trait;
-use bytes::{Buf, BufMut, Bytes, BytesMut};
-use futures::{SinkExt, Stream, StreamExt};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReadHalf, WriteHalf};
-use tokio::net::TcpStream;
+use bytes::{BufMut, BytesMut};
+use futures::{SinkExt, StreamExt};
+
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+
 use tokio::sync::Mutex;
-use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 use tokio_util::codec::length_delimited::Builder;
+use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 
 use crate::conn::Connection;
-use crate::package::{Package, PingPkgData};
+use crate::package::Package;
 
 pub struct TcpConnection {
     framed_read: Mutex<FramedRead<OwnedReadHalf, LengthDelimitedCodec>>,

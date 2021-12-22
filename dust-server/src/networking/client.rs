@@ -1,12 +1,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use tokio::net::tcp::WriteHalf;
-use tokio::sync::Mutex;
-use tokio_util::codec::{FramedWrite, LengthDelimitedCodec};
-
 use dust_game::user::User;
-use dust_networking::conn::{Connection, TcpConnection};
+use dust_networking::conn::Connection;
 use dust_networking::package::Package;
 
 pub struct Client {

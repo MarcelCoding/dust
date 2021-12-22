@@ -1,14 +1,9 @@
 use std::io;
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 use anyhow::anyhow;
-use futures::{stream_select, StreamExt};
 use log::{error, info, warn};
-use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
-use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 
 use dust_networking::conn::{Connection, TcpConnection};
 use dust_networking::package::Package;
@@ -72,16 +67,15 @@ impl Client {
     }
 
     async fn on_package(&self, pkg: Package) {
-        match self
+        if let Err(err) = self
             .pkg_handler
             .handle(&self.conn, pkg, &self.ping_pong_handler)
             .await
         {
-            Err(err) => error!(
+            error!(
                 "Error while handling package from {}: {}",
                 self.address, err
-            ),
-            _ => {}
+            )
         };
     }
 }
