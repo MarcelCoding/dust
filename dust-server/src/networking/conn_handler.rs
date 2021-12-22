@@ -1,10 +1,16 @@
+use std::arch::x86_64::_rdrand32_step;
 use std::collections::HashMap;
+use std::io::Error;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use anyhow::anyhow;
+use futures::StreamExt;
 use log::{error, info, warn};
+use tokio::net::tcp::WriteHalf;
 use tokio::net::TcpStream;
 use tokio::sync::{Mutex, RwLock};
+use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 
 use dust_networking::conn::{Connection, TcpConnection};
 use dust_networking::package::Package;
@@ -24,30 +30,39 @@ impl ConnectionHandler {
         }
     }
 
-    pub async fn accept(&self, stream: TcpStream, address: SocketAddr) {
-        let connection = Mutex::new(TcpConnection::new(stream));
-        let conn = Arc::new(connection);
+    pub async fn accept(&self, mut stream: TcpStream, address: SocketAddr) {
+        let (read, write) = stream.into_split();
+        let connection = Arc::new(TcpConnection::new(read, write).await);
 
-        self.on_connect(conn.clone(), &address).await;
+        self.on_connect(connection.clone(), &address).await;
 
         let err = 'connection: loop {
-            let conn = conn.clone();
-
-            let pkg = match (conn.lock().await.receive_pkg()).await {
-                Ok(pkg) => pkg,
-                Err(err) => break 'connection err,
+            let pkg = match connection.receive_pkg().await {
+                Ok(Some(pkg)) => self.on_package(&address, pkg).await,
+                Ok(None) => {
+                    let guard = self
+                        .clients
+                        .read()
+                        .await;
+                    let client = guard
+                        .get(&address)
+                        .unwrap()
+                        .read()
+                        .await;
+                    warn!(
+                        "Not enough data received from {}, waiting for more.",
+                        client.get_display(&address)
+                    );
+                    continue;
+                }
+                Err(err) => break 'connection anyhow!(err),
             };
-
-            match pkg {
-                Some(pkg) => self.on_package(&address, pkg).await,
-                None => warn!("Not enough data, waiting for more."),
-            }
         };
 
         self.on_disconnect(&address, err).await;
     }
 
-    async fn on_connect(&self, conn: Arc<Mutex<dyn Connection>>, address: &SocketAddr) {
+    async fn on_connect(&self, conn: Arc<TcpConnection>, address: &SocketAddr) {
         let client = Client::new(conn);
 
         let mut clients = self.clients.write().await;

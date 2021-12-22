@@ -1,23 +1,26 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use tokio::net::tcp::WriteHalf;
 use tokio::sync::Mutex;
+use tokio_util::codec::{FramedWrite, LengthDelimitedCodec};
 
 use dust_game::user::User;
-use dust_networking::conn::Connection;
+use dust_networking::conn::{Connection, TcpConnection};
+use dust_networking::package::Package;
 
 pub struct Client {
-    conn: Arc<Mutex<dyn Connection>>,
+    conn: Arc<dyn Connection>,
     user: Option<User>,
 }
 
 impl Client {
-    pub fn new(conn: Arc<Mutex<dyn Connection>>) -> Self {
+    pub fn new(conn: Arc<dyn Connection>) -> Self {
         Client { conn, user: None }
     }
 
-    pub fn get_conn(&mut self) -> &Arc<Mutex<dyn Connection>> {
-        &self.conn
+    async fn send_pkg(&self, pkg: Package) -> anyhow::Result<()> {
+        self.conn.send_pkg(pkg).await
     }
 
     pub fn get_user(&self) -> &Option<User> {

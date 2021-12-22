@@ -4,7 +4,7 @@ use crate::package::{PingPkgData, PkgData};
 
 #[derive(Serialize, Deserialize)]
 pub struct PongPkgData {
-    id: u16
+    id: u16,
 }
 
 impl PongPkgData {

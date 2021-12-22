@@ -1,12 +1,14 @@
-use bytes::{BufMut, BytesMut};
+use std::sync::Arc;
+
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use log::warn;
 use serde::{Deserialize, Serialize};
 
 pub use crate::package::error::ErrorPkgData;
 pub use crate::package::login::LoginPkgData;
-pub use crate::package::Package::{Error, Login, Ping, Pong};
 pub use crate::package::ping::PingPkgData;
 pub use crate::package::pong::PongPkgData;
+pub use crate::package::Package::{Error, Login, Ping, Pong};
 
 mod error;
 mod login;
@@ -23,7 +25,7 @@ pub enum Package {
 }
 
 impl Package {
-    pub(crate) fn decode(frame: &BytesMut) -> anyhow::Result<Option<Self>> {
+    pub fn decode(frame: BytesMut) -> anyhow::Result<Option<Self>> {
         let id = frame[0];
 
         Ok(Some(match id {
@@ -38,7 +40,7 @@ impl Package {
         }))
     }
 
-    pub(crate) fn encode(&self) -> bincode::Result<BytesMut> {
+    pub fn encode(&self) -> bincode::Result<Vec<u8>> {
         match &self {
             Error(pkg) => encode(0, pkg),
             Login(pkg) => encode(1, pkg),
@@ -52,15 +54,8 @@ fn decode<'a, T: Deserialize<'a>>(frame: &'a [u8]) -> bincode::Result<T> {
     bincode::deserialize(&frame[1..])
 }
 
-fn encode<T: ?Sized + Serialize>(id: u8, pkg: &T) -> bincode::Result<BytesMut> {
-    let data = bincode::serialize(pkg)?;
-    let mut result = BytesMut::with_capacity(5 + data.len());
-    result.put_u32(((data.len() + 1) as u32).clone());
-    result.put_u8(id.clone());
-    // result.copy_from_slice(&data); // convert to move
-    for datum in &data {
-        result.put_u8(*datum)
-    }
-
-    Ok(result)
+fn encode<T: ?Sized + Serialize>(id: u8, pkg: &T) -> bincode::Result<Vec<u8>> {
+    let mut buf = vec![id];
+    buf.extend(bincode::serialize(pkg)?);
+    Ok(buf)
 }

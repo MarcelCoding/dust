@@ -6,7 +6,7 @@ use crate::package::Package;
 mod tcp;
 
 #[async_trait]
-pub trait Connection: Send {
-    async fn receive_pkg(&mut self) -> anyhow::Result<Option<Package>>;
-    async fn send_pkg(&mut self, pkg: Package) -> anyhow::Result<()>;
+pub trait Connection: Send + Sync {
+    async fn receive_pkg(&self) -> anyhow::Result<Option<Package>>;
+    async fn send_pkg(&self, pkg: Package) -> anyhow::Result<()>;
 }

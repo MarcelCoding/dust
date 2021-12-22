@@ -23,12 +23,10 @@ async fn main() -> anyhow::Result<()> {
     let address = "127.0.0.1:1234".parse().unwrap();
     let pkg_handler = PackageHandler::new();
     let mut client = Client::connect(address, pkg_handler).await?;
-    // client
-    //     .send_pkg(Login(LoginPkgData::new("Marcel Davis".to_string())))
-    //     .await?;
-    // client
-    //     .send_pkg(Login(LoginPkgData::new("Marcel Davis".to_string())))
-    //     .await?;
+
+    client
+        .send_pkg(Login(LoginPkgData::new("Marcel Davis".to_string())))
+        .await?;
 
     client.send_ping().await?;
 

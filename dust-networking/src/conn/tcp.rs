@@ -1,80 +1,61 @@
+use std::io::Error;
+use std::sync::Arc;
+
+use anyhow::anyhow;
 use async_trait::async_trait;
-use bytes::{Buf, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
+use futures::{SinkExt, Stream, StreamExt};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReadHalf, WriteHalf};
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
+use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
+use tokio_util::codec::length_delimited::Builder;
 
 use crate::conn::Connection;
-use crate::package::Package;
+use crate::package::{Package, PingPkgData};
 
 pub struct TcpConnection {
-    stream: TcpStream,
-    buffer: BytesMut,
-    pkg_size: Option<usize>,
+    framed_read: Mutex<FramedRead<OwnedReadHalf, LengthDelimitedCodec>>,
+    framed_write: Mutex<FramedWrite<OwnedWriteHalf, LengthDelimitedCodec>>,
 }
 
 impl TcpConnection {
-    pub fn new(stream: TcpStream) -> Self {
+    pub async fn new(read: OwnedReadHalf, write: OwnedWriteHalf) -> Self {
+        let mut length_codec_builder = Builder::new();
+        length_codec_builder.max_frame_length(4096);
+
+        let framed_read = Mutex::new(FramedRead::new(read, length_codec_builder.new_codec()));
+        let framed_write = Mutex::new(FramedWrite::new(write, length_codec_builder.new_codec()));
+
         TcpConnection {
-            stream,
-            buffer: BytesMut::with_capacity(4096),
-            pkg_size: None,
-        }
-    }
-
-    fn parse_pkg(&mut self) -> anyhow::Result<Option<Package>> {
-        // read package size if last package was finished
-        if self.pkg_size == None {
-            // package size (u32) consists of 4 bytes
-            if self.buffer.remaining() < 4 {
-                return Ok(None);
-            }
-
-            let pkg_size = &self.buffer.get_u32();
-            self.pkg_size = Some(pkg_size.clone() as usize);
-        }
-
-        let pkg_size = self.pkg_size.unwrap();
-
-        // check if the buf is a full package
-        if self.buffer.remaining() < pkg_size {
-            return Ok(None);
-        }
-
-        // trying to decode package
-        match Package::decode(&self.buffer)? {
-            Some(pkg) => {
-                // discard bytes from current package
-                self.buffer.advance(pkg_size);
-                Ok(Some(pkg))
-            }
-            None => Ok(None),
+            framed_read,
+            framed_write,
         }
     }
 }
 
 #[async_trait]
 impl Connection for TcpConnection {
-    async fn receive_pkg(&mut self) -> anyhow::Result<Option<Package>> {
-        loop {
-            if let Some(frame) = self.parse_pkg()? {
-                return Ok(Some(frame));
-            }
+    async fn receive_pkg(&self) -> anyhow::Result<Option<Package>> {
+        let buf = match self.framed_read.lock().await.next().await {
+            None => return Ok(None),
+            Some(Ok(buf)) => buf,
+            Some(Err(err)) => return Err(err.into()),
+        };
 
-            if self.stream.read_buf(&mut self.buffer).await? == 0 {
-                return if self.buffer.is_empty() {
-                    Ok(None)
-                } else {
-                    //TODO:
-                    panic!("Connection reset by peer")
-                    // Err("connection reset by peer".into())
-                };
-            }
-        }
+        Package::decode(buf)
     }
 
-    async fn send_pkg(&mut self, pkg: Package) -> anyhow::Result<()> {
-        let mut result = pkg.encode()?;
-        self.stream.write_all_buf(&mut result).await?;
-        Ok(())
+    async fn send_pkg(&self, pkg: Package) -> anyhow::Result<()> {
+        let bytes = Package::encode(&pkg)?;
+        let mut buf = BytesMut::with_capacity(bytes.len());
+
+        for x in bytes {
+            buf.put_u8(x);
+        }
+
+        let mut guard = self.framed_write.lock().await;
+        Ok(guard.send(buf.freeze()).await?)
     }
 }
