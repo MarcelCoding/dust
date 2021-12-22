@@ -1,12 +1,9 @@
 use std::collections::HashMap;
-
 use std::net::SocketAddr;
 use std::sync::Arc;
 
 use anyhow::anyhow;
-
 use log::{error, info, warn};
-
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
 
@@ -57,7 +54,7 @@ impl ConnectionHandler {
         let client = Client::new(conn);
 
         let mut clients = self.clients.write().await;
-        clients.insert(address.clone(), RwLock::new(client));
+        clients.insert(*address, RwLock::new(client));
 
         info!(
             "Client from {} established connection. Total {} clients.",
@@ -80,9 +77,8 @@ impl ConnectionHandler {
     }
 
     async fn on_package(&self, address: &SocketAddr, pkg: Package) {
-        match self.pkg_handler.handle(&self.clients, address, pkg).await {
-            Err(err) => error!("Error while handling package from {}: {}", &address, err),
-            _ => {}
-        };
+        if let Err(err) = self.pkg_handler.handle(&self.clients, address, pkg).await {
+            error!("Error while handling package from {}: {}", &address, err);
+        }
     }
 }

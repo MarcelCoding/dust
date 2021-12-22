@@ -1,5 +1,5 @@
 use log::LevelFilter;
-use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TermLogger, TerminalMode};
 
 use dust_networking::package::{Login, LoginPkgData};
 
@@ -14,7 +14,9 @@ mod ping_pong;
 async fn main() -> anyhow::Result<()> {
     TermLogger::init(
         LevelFilter::Info,
-        Config::default(),
+        ConfigBuilder::new()
+            .set_level_padding(LevelPadding::Right)
+            .build(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )

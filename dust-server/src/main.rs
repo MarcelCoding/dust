@@ -2,7 +2,7 @@ use std::io;
 use std::sync::Arc;
 
 use log::{info, LevelFilter};
-use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TermLogger, TerminalMode};
 
 use crate::networking::{Client, ConnectionHandler, Server};
 use crate::package::PackageHandler;
@@ -14,7 +14,9 @@ mod package;
 async fn main() -> io::Result<()> {
     TermLogger::init(
         LevelFilter::Info,
-        Config::default(),
+        ConfigBuilder::new()
+            .set_level_padding(LevelPadding::Right)
+            .build(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )
