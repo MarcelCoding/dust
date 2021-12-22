@@ -73,8 +73,8 @@ impl Connection for TcpConnection {
     }
 
     async fn send_pkg(&mut self, pkg: Package) -> anyhow::Result<()> {
-        let result = pkg.encode()?;
-        self.stream.write_all(&result).await?;
+        let mut result = pkg.encode()?;
+        self.stream.write_all_buf(&mut result).await?;
         Ok(())
     }
 }

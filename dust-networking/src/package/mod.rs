@@ -38,7 +38,7 @@ impl Package {
         }))
     }
 
-    pub(crate) fn encode(&self) -> bincode::Result<Vec<u8>> {
+    pub(crate) fn encode(&self) -> bincode::Result<BytesMut> {
         match &self {
             Error(pkg) => encode(0, pkg),
             Login(pkg) => encode(1, pkg),
@@ -52,7 +52,7 @@ fn decode<'a, T: Deserialize<'a>>(frame: &'a [u8]) -> bincode::Result<T> {
     bincode::deserialize(&frame[1..])
 }
 
-fn encode<T: ?Sized + Serialize>(id: u8, pkg: &T) -> bincode::Result<Vec<u8>> {
+fn encode<T: ?Sized + Serialize>(id: u8, pkg: &T) -> bincode::Result<BytesMut> {
     let data = bincode::serialize(pkg)?;
     let mut result = BytesMut::with_capacity(5 + data.len());
     result.put_u32(((data.len() + 1) as u32).clone());
@@ -62,5 +62,5 @@ fn encode<T: ?Sized + Serialize>(id: u8, pkg: &T) -> bincode::Result<Vec<u8>> {
         result.put_u8(*datum)
     }
 
-    Ok(result.to_vec())
+    Ok(result)
 }
