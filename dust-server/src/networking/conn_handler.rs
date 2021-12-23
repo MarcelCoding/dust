@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use log::{error, info, warn};
+use log::{error, info};
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
 

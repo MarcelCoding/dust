@@ -2,7 +2,7 @@ use std::io;
 use std::net::SocketAddr;
 
 use anyhow::anyhow;
-use log::{error, info, warn};
+use log::{error, info};
 use tokio::net::TcpStream;
 
 use dust_networking::conn::{Connection, TcpConnection};
