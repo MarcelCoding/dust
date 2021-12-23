@@ -35,11 +35,20 @@ impl PingPongHandler {
 
         info!(
             "Got back package {} after {} milliseconds.",
-            pkg.get_id(), elapsed_time
+            pkg.get_id(),
+            elapsed_time
         )
     }
 
     async fn get_elapsed_time(&self, id: &Uuid) -> u128 {
-        return self.ids.lock().await.remove(&id).unwrap().elapsed().unwrap().as_millis();
+        return self
+            .ids
+            .lock()
+            .await
+            .remove(&id)
+            .unwrap()
+            .elapsed()
+            .unwrap()
+            .as_millis();
     }
 }
