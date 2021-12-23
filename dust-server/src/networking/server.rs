@@ -47,7 +47,7 @@ impl Server {
                 Err(err) => {
                     if backoff > 64 {
                         // Accept has failed too many times. Return the error.
-                        return Err(err.into());
+                        return Err(err);
                     }
                 }
             }

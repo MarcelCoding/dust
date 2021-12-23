@@ -22,11 +22,7 @@ impl PackageHandler {
         }
     }
 
-    pub async fn handle(
-        &self,
-        conn: &Box<dyn Connection>,
-        pkg: Package,
-    ) -> anyhow::Result<()> {
+    pub async fn handle(&self, conn: &Box<dyn Connection>, pkg: Package) -> anyhow::Result<()> {
         match pkg {
             Package::Error(_) => unimplemented("error"),
             Package::Ping(pkg) => ping(conn, pkg).await?,
@@ -37,7 +33,7 @@ impl PackageHandler {
 
         Ok(())
     }
-    
+
     pub async fn send_ping(&self, conn: &Box<dyn Connection>) -> anyhow::Result<u16> {
         self.ping_pong_handler.write().await.send_ping(conn).await
     }

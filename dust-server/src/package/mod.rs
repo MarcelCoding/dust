@@ -6,9 +6,9 @@ use tokio::sync::RwLock;
 
 use dust_networking::package::Package;
 
-use crate::Client;
 use crate::package::login::login;
 use crate::package::ping::ping;
+use crate::Client;
 
 mod login;
 mod ping;

@@ -21,15 +21,19 @@ impl Client {
         let (read, write) = TcpStream::connect(address).await?.into_split();
         let conn = Box::new(TcpConnection::new(read, write).await);
 
-        Ok(Client {
+        let client = Client {
             address,
             conn,
             pkg_handler,
-        })
+        };
+
+        client.on_connect();
+
+        Ok(client)
     }
 
     pub async fn handle(&self) {
-        self.on_connect();
+        info!("Starting handling of incoming packages.");
 
         let err = 'connection: loop {
             let pkg = match self.conn.receive_pkg().await {
@@ -64,11 +68,7 @@ impl Client {
     }
 
     async fn on_package(&self, pkg: Package) {
-        if let Err(err) = self
-            .pkg_handler
-            .handle(&self.conn, pkg)
-            .await
-        {
+        if let Err(err) = self.pkg_handler.handle(&self.conn, pkg).await {
             error!(
                 "Error while handling package from {}: {}",
                 self.address, err

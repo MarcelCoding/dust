@@ -13,10 +13,10 @@ pub(super) async fn ping(
     address: &SocketAddr,
     pkg: PingPkgData,
 ) -> anyhow::Result<()> {
-    info!("Received Ping package from {}", address.ip());
-
     let guard = clients.read().await;
     let x = guard.get(address).unwrap();
-    let client = x.write().await;
+    let client = x.read().await;
+
+    info!("Received Ping package from {}", client.get_display(address));
     client.send_pkg(Pong(pkg.into())).await
 }
