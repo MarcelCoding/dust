@@ -8,6 +8,7 @@ impl CoordinateValue for u16 {
         *self as f32
     }
 }
+
 impl CoordinateValue for f32 {
     fn as_f32(&self) -> f32 {
         *self
@@ -16,12 +17,12 @@ impl CoordinateValue for f32 {
 
 pub struct Position<T: CoordinateValue> {
     x: T,
-    y: T
+    y: T,
 }
 
 impl<T: CoordinateValue> Position<T> {
     pub fn new(x: T, y: T) -> Self {
-        Position {x, y}
+        Position { x, y }
     }
 
     pub fn difference(&self, other: &Self) -> f32 {

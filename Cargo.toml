@@ -3,6 +3,10 @@
 members = [
     "dust-server",
     "dust-client",
-    "dust-protocol",
+    "dust-networking",
     "dust-game"
 ]
+
+[profile.release]
+lto = true
+codegen-units = 1

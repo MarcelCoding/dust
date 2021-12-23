@@ -1,13 +1,12 @@
 // pub use self::{};
-pub use crate::position::Position;
+pub use crate::entity::AiEntity;
 pub use crate::entity::Entity;
 pub use crate::entity::LivingEntity;
-pub use crate::entity::AiEntity;
-
+pub use crate::position::Position;
 
 pub struct BotEntity {
     pos: Position<f32>,
-    health: u8
+    health: u8,
 }
 
 impl Entity for BotEntity {
