@@ -1,14 +1,47 @@
 syntax = "proto3";
 package dust_protocol;
 
-service Greeter {
-  rpc SayHello (HelloRequest) returns (HelloReply);
+message BoundaryMessage {
+  uint32 x = 1;
+  uint32 y = 2;
+  uint32 length = 3;
+  uint32 width = 4;
 }
 
-message HelloRequest {
-  string name = 1;
+message WallMessage {
+  BoundaryMessage super = 1;
 }
 
-message HelloReply {
-  string message = 1;
+message EntityMessage {
+  float x = 1;
+  float y = 2;
 }
+
+message LivingEntityMessage {
+  EntityMessage super = 1;
+  uint32 health = 2;
+}
+
+message AiEntityMessage {
+  LivingEntityMessage super = 1;
+}
+
+message BotEntityMessage {
+  AiEntityMessage super = 1;
+}
+
+message ProjectileEntityMessage {
+  AiEntityMessage super = 1;
+}
+
+message PlayerEntityMessage {
+  LivingEntityMessage super = 1;
+}
+
+message WorldMessage {
+  uint32 length = 1;
+  uint32 width = 2;
+  repeated BoundaryMessage boundaries = 3;
+}
+
+
