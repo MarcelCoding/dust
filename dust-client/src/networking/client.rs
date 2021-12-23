@@ -38,11 +38,8 @@ impl Client {
         let err = 'connection: loop {
             let pkg = match self.conn.receive_pkg().await {
                 Ok(Some(pkg)) => pkg,
+                Ok(None) => break 'connection anyhow!("Unable to receive any new data"),
                 Err(err) => break 'connection anyhow!(err),
-                Ok(None) => {
-                    warn!("Not enough data received waiting for more.",);
-                    continue;
-                } // todo: add client display name
             };
 
             self.on_package(pkg).await;
@@ -55,7 +52,7 @@ impl Client {
         self.conn.send_pkg(pkg).await
     }
 
-    pub async fn send_ping(&self) -> anyhow::Result<u16> {
+    pub async fn send_ping(&self) -> anyhow::Result<()> {
         self.pkg_handler.send_ping(&self.conn).await
     }
 

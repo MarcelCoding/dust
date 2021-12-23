@@ -2,14 +2,14 @@ use std::collections::HashMap;
 use std::time::SystemTime;
 
 use log::info;
-use rand::random;
 use tokio::sync::Mutex;
+use uuid::Uuid;
 
 use dust_networking::conn::Connection;
 use dust_networking::package::{Ping, PingPkgData, PongPkgData};
 
 pub struct PingPongHandler {
-    ids: Mutex<HashMap<u16, SystemTime>>,
+    ids: Mutex<HashMap<Uuid, SystemTime>>,
 }
 
 impl PingPongHandler {
@@ -19,34 +19,27 @@ impl PingPongHandler {
         }
     }
 
-    pub async fn send_ping(&mut self, conn: &Box<dyn Connection>) -> anyhow::Result<u16> {
-        let mut ids_guard = self.ids.lock().await;
+    pub async fn send_ping(&mut self, conn: &Box<dyn Connection>) -> anyhow::Result<()> {
+        let id = Uuid::new_v4();
 
-        let id: u16 = 'id: loop {
-            let id: u16 = random();
-            if !ids_guard.contains_key(&id) {
-                break 'id id;
-            }
-        };
-
-        ids_guard.insert(id, SystemTime::now());
+        self.ids.lock().await.insert(id, SystemTime::now());
         conn.send_pkg(Ping(PingPkgData::new(id))).await?;
 
         info!("Send Ping...");
 
-        Ok(id)
+        Ok(())
     }
 
     pub async fn handle_pong(&self, pkg: PongPkgData) {
-        let mut ids_guard = self.ids.lock().await;
-
-        let pkg_id = pkg.get_id();
-        let time = ids_guard.remove(&pkg_id).unwrap();
-        let elapsed_time = time.elapsed().unwrap().as_millis();
+        let elapsed_time = self.get_elapsed_time(pkg.get_id()).await;
 
         info!(
             "Got back package {} after {} milliseconds.",
-            pkg_id, elapsed_time
+            pkg.get_id(), elapsed_time
         )
+    }
+
+    async fn get_elapsed_time(&self, id: &Uuid) -> u128 {
+        return self.ids.lock().await.remove(&id).unwrap().elapsed().unwrap().as_millis();
     }
 }

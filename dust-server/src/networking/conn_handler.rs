@@ -34,15 +34,7 @@ impl ConnectionHandler {
         let err = 'connection: loop {
             let _pkg = match connection.receive_pkg().await {
                 Ok(Some(pkg)) => self.on_package(&address, pkg).await,
-                Ok(None) => {
-                    let guard = self.clients.read().await;
-                    let client = guard.get(&address).unwrap().read().await;
-                    warn!(
-                        "Not enough data received from {}, waiting for more.",
-                        client.get_display(&address)
-                    );
-                    continue;
-                }
+                Ok(None) => break 'connection anyhow!("Unable to receive any new data"),
                 Err(err) => break 'connection anyhow!(err),
             };
         };

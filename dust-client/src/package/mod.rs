@@ -34,7 +34,7 @@ impl PackageHandler {
         Ok(())
     }
 
-    pub async fn send_ping(&self, conn: &Box<dyn Connection>) -> anyhow::Result<u16> {
+    pub async fn send_ping(&self, conn: &Box<dyn Connection>) -> anyhow::Result<()> {
         self.ping_pong_handler.write().await.send_ping(conn).await
     }
 }
