@@ -25,7 +25,7 @@ impl PingPongHandler {
         self.ids.lock().await.insert(id, SystemTime::now());
         conn.send_pkg(Ping(PingPkgData::new(id))).await?;
 
-        info!("Send Ping...");
+        // info!("Send Ping...");
 
         Ok(())
     }

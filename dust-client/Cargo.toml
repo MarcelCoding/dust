@@ -9,6 +9,7 @@ edition = "2021"
 tokio = { version = "1.15", features = ["full"] }
 dust-networking = { path = "../dust-networking" }
 dust-game = { path = "../dust-game" }
+dust-graphics = { path = "../dust-graphics" }
 log = "0.4"
 simplelog = "0.11"
 anyhow = "1.0"

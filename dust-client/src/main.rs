@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
                 error!("Unable to send ping: {}", err);
                 return;
             } else {
-                time::sleep(Duration::from_secs(1)).await;
+                // time::sleep(Duration::from_secs(1)).await;
             }
         }
     });

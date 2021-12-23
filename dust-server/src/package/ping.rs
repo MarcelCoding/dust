@@ -17,9 +17,9 @@ pub(super) async fn ping(
     let x = guard.get(address).unwrap();
     let client = x.read().await;
 
-    info!(
-        "Received Ping package from {}.",
-        client.get_display(address)
-    );
+    // info!(
+    //     "Received Ping package from {}.",
+    //     client.get_display(address)
+    // );
     client.send_pkg(Pong(pkg.into())).await
 }

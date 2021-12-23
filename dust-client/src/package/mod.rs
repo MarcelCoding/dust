@@ -29,7 +29,7 @@ impl PackageHandler {
             Package::Pong(pkg) => pong(pkg, &self.ping_pong_handler).await?,
             Package::Login(_) => unimplemented("login"),
         }
-        info!("Received Package");
+        // info!("Received Package");
 
         Ok(())
     }
