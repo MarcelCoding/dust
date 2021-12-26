@@ -4,6 +4,7 @@ use macroquad::prelude::{
     BLUE, Color, Conf, draw_line, GREEN, is_key_down, KeyCode, next_frame, RED,
     screen_height, screen_width, WHITE, YELLOW,
 };
+use macroquad::time::get_frame_time;
 use macroquad::Window;
 
 use crate::camera::{Camera, Side};
@@ -51,12 +52,12 @@ pub(crate) const MAP: [u8; (MAP_WIDTH * MAP_HEIGHT) as usize] = [
 ];
 
 fn rotate(yaw: f32, step: f32) -> f32 {
-    (yaw + step + 360.0) % 360.0
+    (yaw + ((get_frame_time() / step) * 100.0) + 360.0) % 360.0
 }
 
 fn walk(x: f32, y: f32, yaw: f32, step: f32, max_x: f32, max_y: f32) -> (f32, f32) {
-    let dx = yaw.to_radians().sin() * step * 0.1;
-    let dy = yaw.to_radians().cos() * step * 0.1;
+    let dx = yaw.to_radians().sin() * ((get_frame_time() / step) * 100.0) * 0.1;
+    let dy = yaw.to_radians().cos() * ((get_frame_time() / step) * 100.0) * 0.1;
 
     (
         (max_x - 1_f32).min(x + dx).max(2_f32),
@@ -70,17 +71,20 @@ async fn draw() {
     let mut yaw = -90_f32;
     let fov = 60_f32;//90_f32 * screen_width() / 552_f32;//90_f32;
 
+    const WALK_SPEED: f32 = 1_f32;
+    const TURN_SPEED: f32 = 1_f32;
+
     loop {
         if is_key_down(KeyCode::Left) {
-            yaw = rotate(yaw, 1_f32)
+            yaw = rotate(yaw, TURN_SPEED);
         }
 
         if is_key_down(KeyCode::Right) {
-            yaw = rotate(yaw, -1_f32);
+            yaw = rotate(yaw, -TURN_SPEED);
         }
 
         if is_key_down(KeyCode::W) {
-            let (x1, y1) = walk(x, y, yaw, 1_f32, 23_f32, 23_f32);
+            let (x1, y1) = walk(x, y, yaw, WALK_SPEED, 23_f32, 23_f32);
             x = x1;
             y = y1;
         }

@@ -1,4 +1,6 @@
 use std::sync::Arc;
+use std::thread::sleep;
+use std::time::Duration;
 
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TermLogger, TerminalMode};
@@ -25,6 +27,7 @@ async fn main() -> anyhow::Result<()> {
 
     open_window();
 
+    /*
     let address = "127.0.0.1:1234".parse().unwrap();
     let pkg_handler = PackageHandler::new();
     let client = Arc::new(Client::connect(address, pkg_handler).await?);
@@ -42,5 +45,9 @@ async fn main() -> anyhow::Result<()> {
     // });
 
     client.handle().await;
+     */
+    loop {
+        sleep(Duration::new(10000000000000, 0));
+    }
     Ok(())
 }
