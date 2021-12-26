@@ -19,7 +19,7 @@ impl PingPongHandler {
         }
     }
 
-    pub async fn send_ping(&mut self, conn: &Box<dyn Connection>) -> anyhow::Result<()> {
+    pub async fn send_ping(&mut self, conn: &dyn Connection) -> anyhow::Result<()> {
         let id = Uuid::new_v4();
 
         self.ids.lock().await.insert(id, SystemTime::now());
@@ -34,7 +34,7 @@ impl PingPongHandler {
         let elapsed_time = self.get_elapsed_time(pkg.get_id()).await;
 
         info!(
-            "Got back package {} after {} milliseconds.",
+            "Got back ping {} after {} milliseconds.",
             pkg.get_id(),
             elapsed_time
         )
@@ -45,7 +45,7 @@ impl PingPongHandler {
             .ids
             .lock()
             .await
-            .remove(&id)
+            .remove(id)
             .unwrap()
             .elapsed()
             .unwrap()

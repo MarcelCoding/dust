@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
 
-use log::info;
 use tokio::sync::RwLock;
 
 use dust_networking::package::{PingPkgData, Pong};

@@ -1,4 +1,4 @@
-use log::{info, warn};
+use log::warn;
 use tokio::sync::RwLock;
 
 use dust_networking::conn::Connection;
@@ -22,7 +22,7 @@ impl PackageHandler {
         }
     }
 
-    pub async fn handle(&self, conn: &Box<dyn Connection>, pkg: Package) -> anyhow::Result<()> {
+    pub async fn handle(&self, conn: &dyn Connection, pkg: Package) -> anyhow::Result<()> {
         match pkg {
             Package::Error(_) => unimplemented("error"),
             Package::Ping(pkg) => ping(conn, pkg).await?,
@@ -34,7 +34,7 @@ impl PackageHandler {
         Ok(())
     }
 
-    pub async fn send_ping(&self, conn: &Box<dyn Connection>) -> anyhow::Result<()> {
+    pub async fn send_ping(&self, conn: &dyn Connection) -> anyhow::Result<()> {
         self.ping_pong_handler.write().await.send_ping(conn).await
     }
 }

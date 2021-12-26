@@ -22,6 +22,6 @@ impl PkgData for PongPkgData {}
 
 impl From<PingPkgData> for PongPkgData {
     fn from(pkg: PingPkgData) -> Self {
-        PongPkgData::new(pkg.get_id().clone())
+        PongPkgData::new(*pkg.get_id())
     }
 }

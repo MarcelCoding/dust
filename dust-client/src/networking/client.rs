@@ -53,7 +53,7 @@ impl Client {
     }
 
     pub async fn send_ping(&self) -> anyhow::Result<()> {
-        self.pkg_handler.send_ping(&self.conn).await
+        self.pkg_handler.send_ping(&*self.conn).await
     }
 
     fn on_connect(&self) {
@@ -65,7 +65,7 @@ impl Client {
     }
 
     async fn on_package(&self, pkg: Package) {
-        if let Err(err) = self.pkg_handler.handle(&self.conn, pkg).await {
+        if let Err(err) = self.pkg_handler.handle(&*self.conn, pkg).await {
             error!(
                 "Error while handling package from {}: {}",
                 self.address, err
