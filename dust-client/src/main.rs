@@ -1,12 +1,9 @@
 use std::sync::Arc;
-use std::time::Duration;
 
-use log::{error, LevelFilter};
+use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TermLogger, TerminalMode};
-use tokio::time;
 
 use dust_graphics::open_window;
-use dust_networking::package::{Login, LoginPkgData};
 
 use crate::networking::Client;
 use crate::package::PackageHandler;

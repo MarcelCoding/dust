@@ -3,6 +3,7 @@ use std::f32::consts::PI;
 use macroquad::prelude::{IVec2, Vec2};
 
 const NINETY_DEGREES_IN_RAD: f32 = PI / 2_f32;
+const VIEWPORT_WIDTH: f32 = 625_f32;
 
 #[derive(PartialEq)]
 pub(crate) enum Side {
@@ -17,13 +18,14 @@ pub(crate) struct Camera {
     ray_base: Vec2,
     width: f32,
     height: f32,
+    viewport_width: f32,
 }
 
 impl Camera {
     pub(crate) fn new(x: f32, y: f32, yaw: f32, fov: f32, width: f32, height: f32) -> Self {
-        let yaw_rad = yaw.to_radians();
-        let projection_plane_distance =
-            width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
+        let viewport_width = height;
+        let yaw_rad = yaw.to_radians(); // make camera width independent from screen width
+        let projection_plane_distance = viewport_width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
         let ray_base_angel = yaw_rad - NINETY_DEGREES_IN_RAD;
 
         let pos = Vec2::new(x, y);
@@ -41,6 +43,7 @@ impl Camera {
             ray_base,
             width,
             height,
+            viewport_width,
         }
     }
 
@@ -160,10 +163,13 @@ impl Camera {
     pub(crate) fn ray_direction(&self, column: f32) -> Vec2 {
         // percentage of the current column/ray from -100% to 100%
         // where 0% is the middle and -100% the most left column/ray
-        let ray_x = 2_f32 * column / self.width - 1_f32;
+        // ^ according to the viewport
+        //   for the real screen the percentage can gow above and below (-)100%
+        let ray_x_viewport = 2_f32 * column / self.viewport_width - 1_f32;
+        let ray_x = (ray_x_viewport * self.width) / self.viewport_width;
 
         // This is a vector that points with 90 degrees to the left or right
-        // depending of the obove calculated percentage.
+        // depending of the above calculated percentage.
         //
         // `self.ray_base` is a vector that point with 90 degrees from the player
         // straight to the right till the end of the projection plane.

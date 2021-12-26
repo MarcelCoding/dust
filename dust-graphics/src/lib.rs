@@ -1,13 +1,13 @@
 use std::thread;
 
 use macroquad::prelude::{
-    draw_line, is_key_down, next_frame, screen_height, screen_width, Color, Conf, KeyCode, Vec2,
-    BLUE, GREEN, RED, WHITE, YELLOW,
+    BLUE, Color, Conf, draw_line, GREEN, is_key_down, KeyCode, next_frame, RED,
+    screen_height, screen_width, WHITE, YELLOW,
 };
 use macroquad::Window;
 
 use crate::camera::{Camera, Side};
-use crate::Side::{EW, NS};
+use crate::Side::NS;
 
 mod camera;
 mod mini_map;
@@ -68,7 +68,7 @@ async fn draw() {
     let mut x = 22_f32;
     let mut y = 12_f32;
     let mut yaw = -90_f32;
-    let fov = 60_f32;
+    let fov = 60_f32;//90_f32 * screen_width() / 552_f32;//90_f32;
 
     loop {
         if is_key_down(KeyCode::Left) {
