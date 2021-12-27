@@ -113,25 +113,6 @@ async fn draw() {
         let camera = Camera::new(x, y, yaw, fov, screen_width(), screen_height()); // 0 -> +x, 90 -> y+
 
         for column in 0..(screen_width() as u32) {
-            // ray_pos 0 is the middle of the screen
-            // let ray_pos = ray as f32;
-            // let (ray_vec, dis_offset) = camera.ray_vec(sw, ray_pos);
-            //
-            // let (x, y, distance, side) = find_wall(&camera, ray_vec);
-            //
-            // let height = sh / (distance / dis_offset);
-            //
-            // let mut start = -height / 2.0 + sh / 2.0;
-            // let mut end = height / 2.0 + sh / 2.0;
-            //
-            // if start < 0.0 {
-            //     start = 0.0
-            // }
-            //
-            // if end >= sh {
-            //     end = sh - 1.0
-            // }
-
             let (draw_start, draw_end, side, material) =
                 camera.calc_column(column as f32, &MAP, MAP_WIDTH as i32);
 

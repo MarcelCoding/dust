@@ -23,8 +23,9 @@ pub(crate) struct Camera {
 
 impl Camera {
     pub(crate) fn new(x: f32, y: f32, yaw: f32, fov: f32, width: f32, height: f32) -> Self {
+        // make camera width independent from screen width
         let viewport_width = height;
-        let yaw_rad = yaw.to_radians(); // make camera width independent from screen width
+        let yaw_rad = yaw.to_radians();
         let projection_plane_distance = viewport_width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
         let ray_base_angel = yaw_rad - NINETY_DEGREES_IN_RAD;
 
@@ -72,25 +73,6 @@ impl Camera {
 
         (draw_start, draw_end, side, material)
     }
-
-    // ray between -x and x
-    // pub(crate) fn ray_vec(&self, sw: f32, ray: f32) -> (Vec2, f32) {
-    //     let fov_offset = self.yaw - (self.fov / 2.0);
-    //     let rel_ray_angel = ray / sw * self.fov;
-    //     let ray_angel = (fov_offset + rel_ray_angel).to_radians();
-    //
-    //     let fov_plane_dis = (self.fov / 2.0).to_radians().tan() * sw / 2.0;
-    //
-    //     let x = (ray - sw / 2.0).hypot(fov_plane_dis.abs());
-    //
-    //     // println!("{} {} {} {}", x , fov_plane_dis,x-fov_plane_dis, (x-fov_plane_dis)/x);
-    //
-    //     (
-    //         Vec2::new(ray_angel.sin(), ray_angel.cos()),
-    //         1.0 / (rel_ray_angel - self.fov / 2.0).to_radians().cos(),
-    //         // x - fov_plane_dis/x
-    //     )
-    // }
 
     // https://lodev.org/cgtutor/raycasting.html
     // https://youtu.be/NbSee-XM7WA
@@ -147,11 +129,6 @@ impl Camera {
         } {}
 
         // absolute distance that was casted
-        /*let cast_distance = match side {
-            Side::EW => side_x - delta.x,
-            Side::NS => side_y - delta.y,
-        };*/
-
         let cast_distance = match side {
             Side::EW => side_x - delta.x,
             Side::NS => side_y - delta.y,
