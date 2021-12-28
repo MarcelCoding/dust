@@ -2,8 +2,9 @@ use std::f32::consts::PI;
 
 use macroquad::prelude::{IVec2, Vec2};
 
+use crate::Screen;
+
 const NINETY_DEGREES_IN_RAD: f32 = PI / 2_f32;
-const VIEWPORT_WIDTH: f32 = 625_f32;
 
 #[derive(PartialEq)]
 pub(crate) enum Side {
@@ -16,59 +17,60 @@ pub(crate) struct Camera {
     direction: Vec2,
     projection_distance: f32,
     ray_base: Vec2,
-    width: f32,
-    height: f32,
     viewport_width: f32,
 }
 
 impl Camera {
-    pub(crate) fn new(x: f32, y: f32, yaw: f32, fov: f32, width: f32, height: f32) -> Self {
+    pub(crate) fn new() -> Self {
+        Camera {
+            pos: Vec2::new(0_f32, 0_f32),
+            direction: Vec2::new(0_f32, 0_f32),
+            projection_distance: 0_f32,
+            ray_base: Vec2::new(0_f32, 0_f32),
+            viewport_width: 0_f32,
+        }
+    }
+
+    pub(crate) fn sync(&mut self, screen: &Screen, x: f32, y: f32, yaw: f32, fov: f32) {
         // make camera width independent from screen width
-        let viewport_width = height;
+        let viewport_width = screen.height();
         let yaw_rad = yaw.to_radians();
-        let projection_plane_distance = viewport_width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
+        let projection_distance =
+            viewport_width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
         let ray_base_angel = yaw_rad - NINETY_DEGREES_IN_RAD;
 
-        let pos = Vec2::new(x, y);
-        let direction = Vec2::new(
-            yaw_rad.sin() * projection_plane_distance,
-            yaw_rad.cos() * projection_plane_distance,
+        self.pos = Vec2::new(x, y);
+        self.direction = Vec2::new(
+            yaw_rad.sin() * projection_distance,
+            yaw_rad.cos() * projection_distance,
         );
-        let projection_distance = direction.length();
-        let ray_base = Vec2::new(ray_base_angel.sin(), ray_base_angel.cos());
-
-        Camera {
-            pos,
-            direction,
-            projection_distance,
-            ray_base,
-            width,
-            height,
-            viewport_width,
-        }
+        self.projection_distance = projection_distance;
+        self.ray_base = Vec2::new(ray_base_angel.sin(), ray_base_angel.cos());
+        self.viewport_width = viewport_width;
     }
 
     pub(crate) fn calc_column(
         &self,
+        screen: &Screen,
         column: f32,
         world: &[u8],
         world_width: i32,
     ) -> (f32, f32, Side, u8) {
-        let ray_direction = self.ray_direction(column);
+        let ray_direction = self.ray_direction(screen, column);
         let (pos, side, distance) = self.cast_ray(ray_direction, world, world_width);
 
-        let line_height = self.height / distance;
+        let line_height = screen.height() / distance;
 
-        let mut draw_start = -line_height / 2_f32 + self.height / 2_f32;
-        let mut draw_end = line_height / 2_f32 + self.height / 2_f32;
+        let mut draw_start = -line_height / 2_f32 + screen.y_middle();
+        let mut draw_end = line_height / 2_f32 + screen.y_middle();
         let material = world[(pos.y * world_width + pos.x) as usize];
 
         if draw_start < 0_f32 {
             draw_start = 0_f32;
         }
 
-        if draw_end >= self.height {
-            draw_end = self.height - 1_f32;
+        if draw_end >= screen.height() {
+            draw_end = screen.height() - 1_f32;
         }
 
         (draw_start, draw_end, side, material)
@@ -137,13 +139,13 @@ impl Camera {
         (pos, side, cast_distance)
     }
 
-    pub(crate) fn ray_direction(&self, column: f32) -> Vec2 {
+    pub(crate) fn ray_direction(&self, screen: &Screen, column: f32) -> Vec2 {
         // percentage of the current column/ray from -100% to 100%
         // where 0% is the middle and -100% the most left column/ray
         // ^ according to the viewport
         //   for the real screen the percentage can gow above and below (-)100%
         let ray_x_viewport = 2_f32 * column / self.viewport_width - 1_f32;
-        let ray_x = (ray_x_viewport * self.width) / self.viewport_width;
+        let ray_x = (ray_x_viewport * screen.width()) / self.viewport_width;
 
         // This is a vector that points with 90 degrees to the left or right
         // depending of the above calculated percentage.
@@ -159,8 +161,8 @@ impl Camera {
         let direction = self.direction + ray_base;
 
         // because the direction is going to be normalized every ray has the same direction
-        // and only the reay for the middle (ray_x = 0) is able to reach the projection plane
-        // msissing_length in percent
+        // and only the ray for the middle (ray_x = 0) is able to reach the projection plane
+        // missing_length in percent
         let missing_length =
             (direction.length() - self.projection_distance) / self.projection_distance;
 

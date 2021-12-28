@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -6,9 +5,6 @@ use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, LevelPadding, TermLogger, TerminalMode};
 
 use dust_graphics::open_window;
-
-use crate::networking::Client;
-use crate::package::PackageHandler;
 
 mod networking;
 mod package;
@@ -49,5 +45,5 @@ async fn main() -> anyhow::Result<()> {
     loop {
         sleep(Duration::new(10000000000000, 0));
     }
-    Ok(())
+    // Ok(())
 }

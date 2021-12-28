@@ -1,32 +1,18 @@
 use std::thread;
 
 use macroquad::prelude::{
-    BLACK,
-    BLUE,
-    Color,
-    Conf,
-    draw_line,
-    draw_text,
-    get_fps,
-    get_frame_time,
-    GREEN,
-    is_key_down,
-    KeyCode,
-    next_frame,
-    PURPLE,
-    RED,
-    screen_height,
-    screen_width,
-    WHITE,
-    YELLOW,
+    draw_line, draw_text, get_fps, get_frame_time, is_key_down, next_frame, screen_height,
+    screen_width, Color, Conf, KeyCode, BLACK, BLUE, GREEN, PURPLE, RED, WHITE, YELLOW,
 };
 use macroquad::Window;
 
 use crate::camera::{Camera, Side};
+use crate::screen::Screen;
 use crate::Side::NS;
 
 mod camera;
 mod mini_map;
+mod screen;
 
 pub fn open_window() {
     thread::spawn(|| {
@@ -95,7 +81,13 @@ async fn draw() {
     const WALK_SPEED: f32 = 1_f32;
     const TURN_SPEED: f32 = 1_f32;
 
+    let mut screen = Screen::new();
+    let mut camera = Camera::new();
+
     loop {
+        screen.sync(screen_width(), screen_height());
+        camera.sync(&screen, x, y, yaw, fov);
+
         if is_key_down(KeyCode::Left) {
             yaw = rotate(yaw, TURN_SPEED);
         }
@@ -110,11 +102,9 @@ async fn draw() {
             y = y1;
         }
 
-        let camera = Camera::new(x, y, yaw, fov, screen_width(), screen_height()); // 0 -> +x, 90 -> y+
-
         for column in 0..(screen_width() as u32) {
             let (draw_start, draw_end, side, material) =
-                camera.calc_column(column as f32, &MAP, MAP_WIDTH as i32);
+                camera.calc_column(&screen, column as f32, &MAP, MAP_WIDTH as i32);
 
             let mut color = match material {
                 1 => RED,
@@ -122,7 +112,7 @@ async fn draw() {
                 3 => BLUE,
                 4 => WHITE,
                 5 => YELLOW,
-                _ => PURPLE
+                _ => PURPLE,
             };
 
             if side == NS {
@@ -159,14 +149,17 @@ async fn draw() {
         // );
         // }
 
-        draw_text(format!("X/Y: {:.1}/{:.1}", x, y).as_str(), 12_f32, 32_f32, 20_f32, BLACK);
-        draw_text(format!("X/Y: {:.1}/{:.1}", x, y).as_str(), 10_f32, 30_f32, 20_f32, WHITE);
+        let xy = format!("X/Y: {:.1}/{:.1}", x, y);
+        draw_text(xy.as_str(), 12_f32, 32_f32, 20_f32, BLACK);
+        draw_text(xy.as_str(), 10_f32, 30_f32, 20_f32, WHITE);
 
-        draw_text(format!("YAW: {:.1}°", yaw).as_str(), 12_f32, 62_f32, 20_f32, BLACK);
-        draw_text(format!("YAW: {:.1}°", yaw).as_str(), 10_f32, 60_f32, 20_f32, WHITE);
+        let yaw = format!("YAW: {:.1}°", yaw);
+        draw_text(yaw.as_str(), 12_f32, 62_f32, 20_f32, BLACK);
+        draw_text(yaw.as_str(), 10_f32, 60_f32, 20_f32, WHITE);
 
-        draw_text(format!("FPS: {}", get_fps()).as_str(), 12_f32, 92_f32, 20_f32, BLACK);
-        draw_text(format!("FPS: {}", get_fps()).as_str(), 10_f32, 90_f32, 20_f32, WHITE);
+        let fps = format!("FPS: {}", get_fps());
+        draw_text(fps.as_str(), 12_f32, 92_f32, 20_f32, BLACK);
+        draw_text(fps.as_str(), 10_f32, 90_f32, 20_f32, WHITE);
 
         next_frame().await
     }
