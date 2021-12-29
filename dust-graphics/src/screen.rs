@@ -15,11 +15,16 @@ impl Screen {
         }
     }
 
-    pub(crate) fn sync(&mut self, width: f32, height: f32) {
+    pub(crate) fn sync(&mut self, width: f32, height: f32) -> bool {
+        if self.width == width && self.height == height {
+            return false;
+        }
+
         self.width = width;
         self.height = height;
         self.middle.x = width / 2_f32;
         self.middle.y = height / 2_f32;
+        true
     }
 
     pub(crate) fn width(&self) -> f32 {

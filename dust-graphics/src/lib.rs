@@ -1,9 +1,9 @@
-use macroquad::color::GRAY;
 use std::thread;
 
+use macroquad::color::GRAY;
 use macroquad::prelude::{
-    draw_line, draw_text, get_fps, get_frame_time, is_key_down, next_frame, screen_height,
-    screen_width, Color, Conf, KeyCode, BLACK, BLUE, GREEN, PURPLE, RED, WHITE, YELLOW,
+    BLACK, BLUE, Color, Conf, draw_line, draw_text, get_fps,
+    get_frame_time, GREEN, is_key_down, KeyCode, next_frame, PURPLE, RED, screen_height, screen_width, WHITE, YELLOW,
 };
 use macroquad::Window;
 use macroquad::window::clear_background;
@@ -80,6 +80,12 @@ async fn draw() {
     let mut yaw = -90_f32;
     let fov = 60_f32;
 
+    let mut old_fov = fov;
+
+    let mut old_x = x + 1_f32;
+    let mut old_y = y + 1_f32;
+    let mut old_yaw = yaw + 1_f32;
+
     const WALK_SPEED: f32 = 1_f32;
     const TURN_SPEED: f32 = 1_f32;
 
@@ -87,8 +93,13 @@ async fn draw() {
     let mut camera = Camera::new();
 
     loop {
-        screen.sync(screen_width(), screen_height());
-        camera.sync(&screen, x, y, yaw, fov);
+        if screen.sync(screen_width(), screen_height()) || old_fov != fov {
+            camera.sync(&screen, fov);
+        }
+
+        if old_x != x || old_y != y || old_yaw != yaw {
+            camera.sync_pos(x, y, yaw);
+        }
 
         if is_key_down(KeyCode::Left) {
             yaw = rotate(yaw, TURN_SPEED);
