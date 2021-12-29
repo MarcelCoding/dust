@@ -1,6 +1,5 @@
 use std::thread;
 
-use macroquad::color::GRAY;
 use macroquad::prelude::{
     draw_line, draw_text, get_fps, get_frame_time, is_key_down, next_frame, screen_height,
     screen_width, Color, Conf, KeyCode, BLACK, BLUE, GREEN, PURPLE, RED, WHITE, YELLOW,
@@ -93,10 +92,14 @@ async fn draw() {
 
     loop {
         if screen.sync(screen_width(), screen_height()) || old_fov != fov {
+            old_fov = fov;
             camera.sync(&screen, fov);
         }
 
         if old_x != x || old_y != y || old_yaw != yaw {
+            old_x = x;
+            old_y = y;
+            old_yaw = yaw;
             camera.sync_pos(x, y, yaw);
         }
 
