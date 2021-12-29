@@ -33,7 +33,8 @@ impl Camera {
 
     pub(crate) fn sync(&mut self, screen: &Screen, fov: f32) {
         self.viewport_width = screen.height();
-        self.projection_distance = self.viewport_width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
+        self.projection_distance =
+            self.viewport_width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
     }
 
     pub(crate) fn sync_pos(&mut self, x: f32, y: f32, yaw: f32) {
@@ -46,10 +47,7 @@ impl Camera {
         );
 
         let ray_base_angel = yaw_rad - NINETY_DEGREES_IN_RAD;
-        self.ray_base = Vec2::new(
-            ray_base_angel.sin(),
-            ray_base_angel.cos(),
-        );
+        self.ray_base = Vec2::new(ray_base_angel.sin(), ray_base_angel.cos());
     }
 
     pub(crate) fn calc_column(

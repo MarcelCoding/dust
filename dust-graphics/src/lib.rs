@@ -2,11 +2,10 @@ use std::thread;
 
 use macroquad::color::GRAY;
 use macroquad::prelude::{
-    BLACK, BLUE, Color, Conf, draw_line, draw_text, get_fps,
-    get_frame_time, GREEN, is_key_down, KeyCode, next_frame, PURPLE, RED, screen_height, screen_width, WHITE, YELLOW,
+    draw_line, draw_text, get_fps, get_frame_time, is_key_down, next_frame, screen_height,
+    screen_width, Color, Conf, KeyCode, BLACK, BLUE, GREEN, PURPLE, RED, WHITE, YELLOW,
 };
 use macroquad::Window;
-use macroquad::window::clear_background;
 
 use crate::camera::{Camera, Side};
 use crate::screen::Screen;
