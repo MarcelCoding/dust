@@ -37,9 +37,11 @@ impl Camera {
             self.viewport_width * (fov.to_radians() / 2_f32).to_radians().tan() / 2_f32;
     }
 
-    pub(crate) fn sync_pos(&mut self, x: f32, y: f32, yaw: f32) {
+    pub(crate) fn sync_pos(&mut self, x: f32, y: f32) {
         self.pos = Vec2::new(x, y);
+    }
 
+    pub(crate) fn sync_view(&mut self, yaw: f32) {
         let yaw_rad = yaw.to_radians();
         self.direction = Vec2::new(
             yaw_rad.sin() * self.projection_distance,

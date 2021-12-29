@@ -1,8 +1,8 @@
 use std::thread;
 
 use macroquad::prelude::{
-    draw_line, draw_text, get_fps, get_frame_time, is_key_down, next_frame, screen_height,
-    screen_width, Color, Conf, KeyCode, BLACK, BLUE, GREEN, PURPLE, RED, WHITE, YELLOW,
+    BLACK, BLUE, Color, Conf, draw_line, draw_text, get_fps,
+    get_frame_time, GREEN, is_key_down, KeyCode, next_frame, PURPLE, RED, screen_height, screen_width, WHITE, YELLOW,
 };
 use macroquad::Window;
 
@@ -96,11 +96,15 @@ async fn draw() {
             camera.sync(&screen, fov);
         }
 
-        if old_x != x || old_y != y || old_yaw != yaw {
+        if old_x != x || old_y != y {
             old_x = x;
             old_y = y;
+            camera.sync_pos(x, y);
+        }
+
+        if old_yaw != yaw {
             old_yaw = yaw;
-            camera.sync_pos(x, y, yaw);
+            camera.sync_view(yaw);
         }
 
         if is_key_down(KeyCode::Left) {
