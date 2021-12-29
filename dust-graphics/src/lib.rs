@@ -1,3 +1,4 @@
+use macroquad::color::GRAY;
 use std::thread;
 
 use macroquad::prelude::{
@@ -5,6 +6,7 @@ use macroquad::prelude::{
     screen_width, Color, Conf, KeyCode, BLACK, BLUE, GREEN, PURPLE, RED, WHITE, YELLOW,
 };
 use macroquad::Window;
+use macroquad::window::clear_background;
 
 use crate::camera::{Camera, Side};
 use crate::screen::Screen;

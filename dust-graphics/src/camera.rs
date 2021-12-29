@@ -1,6 +1,6 @@
-use std::f32::consts::PI;
-
 use macroquad::prelude::{IVec2, Vec2};
+
+use std::f32::consts::PI;
 
 use crate::Screen;
 
@@ -159,18 +159,20 @@ impl Camera {
         // cameras position to the position of the projection plane of the current
         // pixel column.
         let direction = self.direction + ray_base;
+        let direction_length = self.direction.length();
 
         // because the direction is going to be normalized every ray has the same direction
         // and only the ray for the middle (ray_x = 0) is able to reach the projection plane
         // missing_length in percent
         let missing_length =
-            (direction.length() - self.projection_distance) / self.projection_distance;
+            (direction_length - self.projection_distance) / self.projection_distance;
 
-        let normalized_direction = direction.normalize();
+        let direction_x_norm = direction.x / direction_length;
+        let direction_y_norm = direction.y / direction_length;
 
         Vec2::new(
-            normalized_direction.x + normalized_direction.x * missing_length,
-            normalized_direction.y + normalized_direction.y * missing_length,
+            direction_x_norm + direction_x_norm * missing_length,
+            direction_y_norm + direction_y_norm * missing_length,
         )
     }
 }
