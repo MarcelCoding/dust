@@ -114,7 +114,7 @@ impl Camera {
             side_y = (self.pos.y - (pos.y as f32)) * delta.y;
         } else {
             step_y = 1_i32;
-            side_y = (self.pos.y + 1_f32 - (pos.y as f32)) * delta.y;
+            side_y = ((pos.y as f32) + 1_f32 - self.pos.y) * delta.y;
         }
 
         // do-while hack
